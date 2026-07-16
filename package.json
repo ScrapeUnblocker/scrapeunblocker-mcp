@@ -1,0 +1,54 @@
+{
+  "name": "scrapeunblocker-mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol (MCP) server for ScrapeUnblocker - lets Claude fetch any web page's HTML (or AI-parsed JSON) through the ScrapeUnblocker anti-bot API, using your own API key.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "scraping",
+    "web-scraping",
+    "scrapeunblocker",
+    "anti-bot",
+    "cloudflare",
+    "datadome"
+  ],
+  "license": "MIT",
+  "author": "ScrapeUnblocker",
+  "homepage": "https://scrapeunblocker.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ScrapeUnblocker/scrapeunblocker-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ScrapeUnblocker/scrapeunblocker-mcp/issues"
+  },
+  "type": "module",
+  "bin": {
+    "scrapeunblocker-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "scrapeunblocker": "^0.1.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "tsup": "^8.0.0",
+    "tsx": "^4.16.0",
+    "typescript": "^5.4.0"
+  }
+}
