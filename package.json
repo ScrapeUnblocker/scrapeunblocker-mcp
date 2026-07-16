@@ -1,6 +1,7 @@
 {
   "name": "scrapeunblocker-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "mcpName": "io.github.ScrapeUnblocker/scrapeunblocker-mcp",
   "description": "Model Context Protocol (MCP) server for ScrapeUnblocker - lets Claude fetch any web page's HTML (or AI-parsed JSON) through the ScrapeUnblocker anti-bot API, using your own API key.",
   "keywords": [
     "mcp",
