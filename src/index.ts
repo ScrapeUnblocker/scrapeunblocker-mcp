@@ -14,7 +14,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { ScrapeUnblockerClient } from "scrapeunblocker";
 
-const VERSION = "0.1.1";
+const VERSION = "0.1.2";
 
 /**
  * The API key is read per call (not at startup) so the server still starts and

@@ -2,6 +2,11 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.1.2
+
+- Use the DNS-verified `com.scrapeunblocker/*` namespace for the official MCP
+  registry. No functional changes to the tools.
+
 ## 0.1.1
 
 - Add `mcpName` and a `server.json` manifest so the package can be listed in the
