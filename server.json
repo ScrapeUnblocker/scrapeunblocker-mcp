@@ -3,7 +3,7 @@
   "name": "com.scrapeunblocker/scrapeunblocker-mcp",
   "description": "Fetch any web page's HTML or AI-parsed JSON through the ScrapeUnblocker anti-bot API.",
   "status": "active",
-  "websiteUrl": "https://scrapeunblocker.com",
+  "websiteUrl": "https://scrapeunblocker.com?utm_source=mcp-registry&utm_medium=integration&utm_campaign=mcp-server",
   "repository": {
     "url": "https://github.com/ScrapeUnblocker/scrapeunblocker-mcp",
     "source": "github"
