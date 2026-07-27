@@ -16,7 +16,7 @@
   ],
   "license": "MIT",
   "author": "ScrapeUnblocker",
-  "homepage": "https://scrapeunblocker.com",
+  "homepage": "https://scrapeunblocker.com?utm_source=mcp&utm_medium=integration&utm_campaign=mcp-server",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ScrapeUnblocker/scrapeunblocker-mcp.git"

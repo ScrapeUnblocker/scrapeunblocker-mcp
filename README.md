@@ -2,7 +2,7 @@
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server that lets
 Claude (and any other MCP client) fetch **any web page's HTML** through the
-[ScrapeUnblocker](https://scrapeunblocker.com) scraping API, bypassing anti-bot
+[ScrapeUnblocker](https://scrapeunblocker.com?utm_source=mcp&utm_medium=integration&utm_campaign=mcp-server) scraping API, bypassing anti-bot
 protection (Cloudflare, DataDome, PerimeterX, Akamai, Shape).
 
 You bring your **own** API key. Nothing is shared or proxied through us.
@@ -17,7 +17,7 @@ You bring your **own** API key. Nothing is shared or proxied through us.
 
 ## Get an API key
 
-Sign up and grab your key at **https://app.scrapeunblocker.com**. The server
+Sign up and grab your key at **[app.scrapeunblocker.com](https://app.scrapeunblocker.com?utm_source=mcp&utm_medium=integration&utm_campaign=mcp-server)**. The server
 reads it from the `SCRAPEUNBLOCKER_KEY` environment variable.
 
 ## Install
