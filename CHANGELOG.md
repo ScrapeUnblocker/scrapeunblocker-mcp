@@ -2,6 +2,15 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.1.4
+
+- README now points Claude Code users at the official
+  [Claude Code plugin](https://github.com/ScrapeUnblocker/claude-code-plugin),
+  which installs this same server, prompts for the API key and stores it in the
+  OS keychain, and adds a `/scrape-url` command plus reference skills. The
+  `claude mcp add` route is still documented below it. No functional changes to
+  the tools.
+
 ## 0.1.3
 
 - README and registry links to scrapeunblocker.com now carry UTM parameters
