@@ -24,6 +24,19 @@ reads it from the `SCRAPEUNBLOCKER_KEY` environment variable.
 
 ### Claude Code
 
+The easiest route is the official **plugin**, which installs this server for you,
+prompts for your API key (stored in your OS keychain rather than an environment
+variable), and adds a `/scrape-url` command plus reference skills:
+
+```
+/plugin marketplace add ScrapeUnblocker/claude-code-plugin
+/plugin install scrapeunblocker@scrapeunblocker
+```
+
+See [ScrapeUnblocker/claude-code-plugin](https://github.com/ScrapeUnblocker/claude-code-plugin).
+
+To add the bare server instead:
+
 ```bash
 claude mcp add scrapeunblocker \
   --env SCRAPEUNBLOCKER_KEY=your_api_key_here \
