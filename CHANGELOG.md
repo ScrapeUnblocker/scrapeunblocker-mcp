@@ -2,6 +2,21 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.2.0
+
+- **Browser steps.** `fetch_html` now accepts an optional `steps` array: ordered
+  browser actions (`wait_for`, `wait_for_text`, `wait`, `click`, `type`,
+  `select`, `press_key`, `scroll`) that run in a real browser after the page
+  loads, before the HTML is captured. Lets an agent accept cookie banners, click
+  tabs, fill and submit forms, or scroll to trigger lazy loading, then get the
+  resulting HTML. Steps run once (not idempotent); a failed step is surfaced
+  clearly with the failing step, reason and the page HTML at that moment.
+- **New `list_elements` tool.** Returns a JSON list of a page's notable elements
+  with a ready-to-use `selector` for each (plus tag, text, name, id, type,
+  placeholder, aria_label, href, ...). Read-only. It is the discovery half of
+  interactive scraping: list elements, then build `steps` against those
+  selectors.
+
 ## 0.1.4
 
 - README now points Claude Code users at the official
