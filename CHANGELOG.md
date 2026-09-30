@@ -2,6 +2,16 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.2.1
+
+- **A missing target page is reported as such.** When the page you asked for
+  does not exist (the website answers HTTP 404 or 410), `fetch_html`,
+  `list_elements` and `fetch_parsed` now return a plain result that says so -
+  the target's own answer, billed, and not worth retrying - followed by the
+  target's page, instead of a generic API error. Works with both the current
+  API (a 404/410 with `X-Origin-Status`) and the earlier one (a 200 carrying
+  `X-Origin-Status`).
+
 ## 0.2.0
 
 - **Browser steps.** `fetch_html` now accepts an optional `steps` array: ordered
