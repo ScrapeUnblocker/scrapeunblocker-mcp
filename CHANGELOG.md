@@ -2,6 +2,14 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.2.2
+
+- **An empty parse is reported as such.** When `fetch_parsed` reaches a page
+  that holds no structured data, the API now answers HTTP 422
+  `no_data_extracted` (not billed, no HTML). The tool returns a plain result
+  saying nothing could be extracted, that the call was not billed, and to use
+  `fetch_html` for the page itself - instead of a generic HTTP 422 error.
+
 ## 0.2.1
 
 - **A missing target page is reported as such.** When the page you asked for
