@@ -14,7 +14,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { APIError, ScrapeUnblockerClient } from "scrapeunblocker";
 
-const VERSION = "0.2.2";
+const VERSION = "0.2.3";
 
 /** Default API host, matching the SDK. */
 const DEFAULT_BASE_URL = "https://api.scrapeunblocker.com";
@@ -93,38 +93,32 @@ function targetGoneText(url: string, code: number, page: string): string {
 }
 
 /**
- * True for the API's `no_data_extracted` answer: with `parsed_data` the page
- * rendered but held no structured data. It is not billed and carries no HTML.
+ * The rendered page when `parsed_data` found nothing to extract, or null.
+ * The API still answers 200 (billed like fetch_html) with
+ * `data_extracted: false` and the page in `html`.
  */
-function isNoDataExtracted(status: number, body: string | undefined): boolean {
-  if (status !== 422 || !body) return false;
-  try {
-    return JSON.parse(body)?.error === "no_data_extracted";
-  } catch {
-    return false;
-  }
+function noDataExtractedHtml(raw: Record<string, unknown> | undefined): string | null {
+  if (!raw || raw.data_extracted !== false) return null;
+  return typeof raw.html === "string" ? raw.html : "";
 }
 
-function noDataExtractedText(url: string): string {
-  return (
+function noDataExtractedText(url: string, html: string): string {
+  const head =
     `No structured data could be extracted from ${url}: the page loaded, but ` +
-    "nothing on it matched a structured shape. This call was not billed. To get " +
-    "the page itself, call fetch_html for the same URL."
-  );
+    "nothing on it matched a structured shape. The call was billed like fetch_html, " +
+    "so the rendered page is returned instead.";
+  return html.trim() ? `${head}\n\nThe rendered HTML follows:\n\n${html}` : head;
 }
 
 /**
- * Tool result for a thrown error: a target 404/410 and an empty parse are
- * answers about the page, not tool failures, so they are reported as such.
+ * Tool result for a thrown error: a target 404/410 is an answer about the
+ * page, not a tool failure, so it is reported as such.
  */
 function errorResult(url: string, err: unknown) {
   if (err instanceof APIError) {
     const gone = targetGoneStatus(err.statusCode);
     if (gone !== null) {
       return { content: [{ type: "text" as const, text: targetGoneText(url, gone, err.body ?? "") }] };
-    }
-    if (isNoDataExtracted(err.statusCode, err.body)) {
-      return { content: [{ type: "text" as const, text: noDataExtractedText(url) }] };
     }
   }
   return { content: [{ type: "text" as const, text: errorText(err) }], isError: true };
@@ -509,7 +503,7 @@ server.registerTool(
       "JSON instead of raw HTML (e.g. product details, article content). Best " +
       "for extracting fields from product, listing or article pages without " +
       "writing your own HTML parsing. If the page holds no structured data, the " +
-      "result says so (that call is not billed) - use fetch_html for the page itself.",
+      "result says so and returns the rendered HTML instead (billed like fetch_html).",
     inputSchema: {
       url: z.string().url().describe("The absolute URL to fetch and parse."),
       proxy_country: z
@@ -531,6 +525,10 @@ server.registerTool(
         proxyCountry: args.proxy_country,
         rulesHint: args.rules_hint,
       });
+      const noDataHtml = noDataExtractedHtml(parsed.raw);
+      if (noDataHtml !== null) {
+        return { content: [{ type: "text", text: noDataExtractedText(args.url, noDataHtml) }] };
+      }
       return {
         content: [{ type: "text", text: JSON.stringify(parsed, null, 2) }],
       };

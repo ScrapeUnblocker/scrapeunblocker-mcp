@@ -2,6 +2,15 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.2.3
+
+- **An empty parse returns the page.** When `fetch_parsed` reaches a page
+  that holds no structured data, the API now answers HTTP 200 with
+  `data_extracted: false` and the rendered HTML (billed like `fetch_html`),
+  instead of the 422 `no_data_extracted` handled in 0.2.2. The tool says
+  nothing could be extracted and returns that HTML, so no second
+  `fetch_html` call is needed.
+
 ## 0.2.2
 
 - **An empty parse is reported as such.** When `fetch_parsed` reaches a page
