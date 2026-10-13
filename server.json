@@ -1,19 +1,19 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
   "name": "com.scrapeunblocker/scrapeunblocker-mcp",
-  "description": "Fetch any web page's HTML or AI-parsed JSON through the ScrapeUnblocker anti-bot API.",
+  "description": "Fetch any web page's HTML or AI-parsed JSON, or run 100+ site plugins, via ScrapeUnblocker.",
   "status": "active",
   "websiteUrl": "https://scrapeunblocker.com?utm_source=mcp-registry&utm_medium=integration&utm_campaign=mcp-server",
   "repository": {
     "url": "https://github.com/ScrapeUnblocker/scrapeunblocker-mcp",
     "source": "github"
   },
-  "version": "0.2.3",
+  "version": "0.3.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "scrapeunblocker-mcp",
-      "version": "0.2.3",
+      "version": "0.3.0",
       "transport": {
         "type": "stdio"
       },

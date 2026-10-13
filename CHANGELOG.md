@@ -2,6 +2,17 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.3.0
+
+- **Site plugins.** Two new tools: `list_plugins` lists ScrapeUnblocker's
+  ready-made scrapers for specific sites (100+: e-commerce, groceries, travel,
+  Google Trends / Shopping / Maps, search engines, real estate, vehicles,
+  jobs, reviews, apps, YouTube, Spotify, SEO tools) with their parameters,
+  and `run_plugin` runs one and returns its JSON. Two tools over a catalog
+  rather than a tool per plugin, so the tool list stays small. Unknown or
+  missing parameters come back as a clear message with the plugin's docs.
+- Needs `scrapeunblocker` 0.10.0.
+
 ## 0.2.3
 
 - **An empty parse returns the page.** When `fetch_parsed` reaches a page

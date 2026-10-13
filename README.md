@@ -1,7 +1,8 @@
 # ScrapeUnblocker MCP server
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server that lets
-Claude (and any other MCP client) fetch **any web page's HTML** through the
+Claude (and any other MCP client) fetch **any web page's HTML** - or run one of
+100+ ready-made **site plugins** that return structured JSON - through the
 [ScrapeUnblocker](https://scrapeunblocker.com?utm_source=mcp&utm_medium=integration&utm_campaign=mcp-server) scraping API, bypassing anti-bot
 protection (Cloudflare, DataDome, PerimeterX, Akamai, Shape).
 
@@ -15,6 +16,24 @@ You bring your **own** API key. Nothing is shared or proxied through us.
 | `list_elements` | List a page's notable elements with a ready-to-use selector for each (selector discovery). |
 | `fetch_parsed` | Fetch a page and return AI-parsed structured JSON. |
 | `google_search` | Run a Google search and return organic results as JSON. |
+| `list_plugins` | List the ready-made site plugins (100+: Amazon, Walmart, Zillow, Booking.com, Indeed, Google Trends, YouTube, App Store, Ahrefs, ...) with their parameters. Free - it calls nothing. |
+| `run_plugin` | Run one site plugin and return its structured JSON. |
+
+### Site plugins (structured JSON for known sites)
+
+For many popular sites there is a plugin that returns the data already
+parsed - a Target search, a Zillow listing search, an app's App Store reviews,
+Google Trends for a few keywords. The model calls `list_plugins` (optionally
+with `search: "zillow"` or a `category`) to find the plugin and its
+parameters, then `run_plugin` with `name` and `params`:
+
+```json
+{ "name": "target_search", "params": { "query": "coffee maker", "max_results": 20 } }
+```
+
+Every plugin and parameter is documented on the
+[plugin pages](https://docs.scrapeunblocker.com/plugins/overview?utm_source=mcp&utm_medium=integration&utm_campaign=mcp-server).
+Each run is billed like an API request.
 
 ### Browser steps (interact, then capture)
 
@@ -119,6 +138,9 @@ SCRAPEUNBLOCKER_KEY=your_api_key_here npx -y scrapeunblocker-mcp
 - "This page keeps blocking me: <url>. Use fetch_html to get it."
 - "List the elements on <url>, then use fetch_html steps to type 'laptop' into the search box, press Enter, wait for the results, and give me the HTML."
 - "Search Google for 'best running shoes 2026' and give me the top 5 links."
+- "Find coffee makers on Target under $50 and compare them with Walmart's."
+- "Show Google Trends for 'coffee' vs 'tea' in the US over the last year."
+- "What are the newest App Store reviews of WhatsApp saying?"
 
 ## Development
 

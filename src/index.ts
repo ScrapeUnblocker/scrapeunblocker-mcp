@@ -13,8 +13,9 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { APIError, ScrapeUnblockerClient } from "scrapeunblocker";
+import { registerPluginTools } from "./plugin-tools.js";
 
-const VERSION = "0.2.3";
+const VERSION = "0.3.0";
 
 /** Default API host, matching the SDK. */
 const DEFAULT_BASE_URL = "https://api.scrapeunblocker.com";
@@ -579,6 +580,14 @@ server.registerTool(
     }
   },
 );
+
+// ---------------------------------------------------------------------------
+// Tools: list_plugins, run_plugin
+// ---------------------------------------------------------------------------
+registerPluginTools(server, {
+  call: (path, params) => client().plugin(path, params),
+  errorText,
+});
 
 async function main(): Promise<void> {
   const transport = new StdioServerTransport();
