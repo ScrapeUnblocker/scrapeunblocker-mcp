@@ -2,6 +2,12 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.3.1
+
+- Plugin catalog: `tiktok_shop_search` keyword optional, `aldi_au_specials` takes
+  `category` (a Special Buys drop date), `capterra_search` without `page`,
+  `app_store_reviews` without `lang`.
+
 ## 0.3.0
 
 - **Site plugins.** Two new tools: `list_plugins` lists ScrapeUnblocker's

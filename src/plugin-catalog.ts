@@ -2156,7 +2156,7 @@ export const PLUGINS: PluginInfo[] = [
       {
         "name": "q",
         "type": "string",
-        "required": true,
+        "required": false,
         "description": "Search keyword, e.g. 'led face mask' (or a TikTok Shop keyword URL like 'https://www.tiktok.com/shop/product/led-face-mask'). Either this or `category`."
       },
       {
@@ -2936,6 +2936,12 @@ export const PLUGINS: PluginInfo[] = [
     },
     "description": "ALDI Australia (aldi.com.au) products as JSON. `mode=search&query=`, `mode=category&category=` and `mode=specials` return `products`: `id` (SKU), `name`, `brand`, `size`, `url`, `price`, `priceText`, `wasPrice`, `onSale`, `unitPrice` (`price`, `per`, `text`), `bottleDeposit`, `specialBuy` (on-sale date and label), `badges`, `available`, `soldOnline`, `ageRestricted`, `image`, `categories` and `categoryKeys`, plus `totalResults`, `totalPages` and `nextPage`. `mode=specials` lists one Special Buys drop (the current one, or the date / link in `category`; `theme` narrows it) and returns `promotions`, every drop ALDI has announced with its themes. `mode=product&product=` returns `product` with those fields and `description`, `ingredients`, `allergens`, `claims`, `storage`, `usage`, `countryOfOrigin` and `images`. Prices are ALDI's in-store prices in AUD (ALDI Australia does not sell groceries online). Listings collect up to `max_results` from `page` on, billed one unit per page.",
     "params": [
+      {
+        "name": "category",
+        "type": "string",
+        "required": false,
+        "description": "mode=category: a category link (https://www.aldi.com.au/products/dairy-eggs-fridge/milk/k/1111111160) or its key ('1111111160'; '1588161425841179' = Lower Prices). mode=specials: the Special Buys drop - its date ('2026-10-14') or link (https://www.aldi.com.au/special-buys/2026-10-14); blank = the current drop."
+      },
       {
         "name": "theme",
         "type": "string",
@@ -4540,13 +4546,6 @@ export const PLUGINS: PluginInfo[] = [
         "description": "Product name or keyword to search for (mode=search), e.g. 'crm'."
       },
       {
-        "name": "page",
-        "type": "integer",
-        "required": false,
-        "description": "1-based review page to start from: 25 reviews per page, at most 100 (Capterra's limit per product). Use the `nextPage` of a previous response to continue.",
-        "default": 1
-      },
-      {
         "name": "max_results",
         "type": "integer",
         "required": false,
@@ -5083,12 +5082,6 @@ export const PLUGINS: PluginInfo[] = [
         "type": "string",
         "required": false,
         "description": "App Store country (ISO-2), e.g. 'us', 'gb', 'de'. Prices, ratings and reviews are per country. Default: the country in an app URL, else 'us'."
-      },
-      {
-        "name": "lang",
-        "type": "string",
-        "required": false,
-        "description": "Listing language for mode=app / mode=search, e.g. 'fr' or 'fr-CA' (for countries whose store has several languages). Default: the store's own."
       },
       {
         "name": "max_results",
