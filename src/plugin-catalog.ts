@@ -1772,52 +1772,6 @@ export const PLUGINS: PluginInfo[] = [
     ]
   },
   {
-    "name": "temu_search",
-    "title": "Search Temu by keyword",
-    "category": "E-commerce",
-    "path": "/goods/temu-search",
-    "fixed": {},
-    "description": "Searches Temu for `keyword` and returns the matching product urls (~40 per page). This is discovery only - fetch each url's data (name, price, rating, reviews, images) through `POST /goods/temu-product`. Use `sort` to pick Temu's own result order (relevance, best_selling, recent, price_asc, price_desc). Response time is typically ~2s.",
-    "params": [
-      {
-        "name": "keyword",
-        "type": "string",
-        "required": true,
-        "description": "Search phrase, e.g. 'kids toys' or 'phone case'."
-      },
-      {
-        "name": "limit",
-        "type": "integer",
-        "required": false,
-        "description": "Max product urls to return (one search page carries ~40).",
-        "default": 40
-      },
-      {
-        "name": "sort",
-        "type": "string",
-        "required": false,
-        "description": "Result order, using Temu's own sort: `relevance` (default), `best_selling` (top sales), `recent` (most recent), `price_asc` (price low to high) or `price_desc` (price high to low).",
-        "default": "relevance"
-      }
-    ]
-  },
-  {
-    "name": "temu_product",
-    "title": "Scrape a Temu product page",
-    "category": "E-commerce",
-    "path": "/goods/temu-product",
-    "fixed": {},
-    "description": "Fetches a single Temu product and returns it as JSON: `name`, `description`, `brand`, `sku`, `price`, `priceCurrency`, `availability`, `itemCondition`, `rating`, `reviewCount`, `variantGroupId`, `images`, `reviews` (per-review rating and date; Temu masks the review text and author name in this document) and `video` (a `{contentUrl, thumbnailUrl, uploadDate}` object when the product ships one, else null). Temu serves product data only to search-engine crawlers, so this reads the ld+json SEO document rather than a browser render. The url must be a product page (path ends in `-g-<id>.html`).",
-    "params": [
-      {
-        "name": "url",
-        "type": "string",
-        "required": true,
-        "description": "Full Temu product url, e.g. 'https://www.temu.com/xyz-g-601099512345678.html'. Must be a product page (its path ends in `-g-<id>.html`); search/category urls have no product data and are rejected."
-      }
-    ]
-  },
-  {
     "name": "shein_search",
     "title": "Scrape SHEIN product search",
     "category": "E-commerce",

@@ -2,6 +2,10 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.3.3
+
+- Plugin catalog: the Temu plugins are no longer listed.
+
 ## 0.3.2
 
 - Plugin catalog follows SDK 0.11.0: the YouTube comments, Telegram and Quora
