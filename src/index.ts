@@ -15,7 +15,7 @@ import { z } from "zod";
 import { APIError, ScrapeUnblockerClient } from "scrapeunblocker";
 import { registerPluginTools } from "./plugin-tools.js";
 
-const VERSION = "0.3.3";
+const VERSION = "0.3.4";
 
 /** Default API host, matching the SDK. */
 const DEFAULT_BASE_URL = "https://api.scrapeunblocker.com";

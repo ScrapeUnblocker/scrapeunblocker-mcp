@@ -812,7 +812,7 @@ export const PLUGINS: PluginInfo[] = [
     "category": "Google",
     "path": "/images/google-search",
     "fixed": {},
-    "description": "Runs the Google Images vertical (`udm=2`) for `q` and returns the image results as JSON. Every result carries `imageUrl` (the full-resolution origin image, not a Google thumbnail; for an image found inside a document such as a PDF, which has no URL of its own, it is Google's thumbnail and `sourcePageUrl` is the document), `sourceDomain` and `googleImagesUrl` (the Google Images viewer link, i.e. the `/imgres?...` URL a browser copies from the result tile), plus `sourcePageUrl`, `title`, `sourceName`, `thumbnailUrl`, `width`, `height` and `fileSize` where available. Set `proxy_country` to target a market: the Google market (`gl`) follows it automatically, and `gl` is only an optional override. `pages` fetches up to 5 result pages of ~100 each; every page fetched is billed as one request.",
+    "description": "Runs the Google Images vertical (`udm=2`) for `q` and returns the image results as JSON. Every result carries `imageUrl` (the full-resolution origin image, not a Google thumbnail; for an image found inside a document such as a PDF, which has no URL of its own, it is Google's thumbnail and `sourcePageUrl` is the document), `sourceDomain` and `googleImagesUrl` (the Google Images viewer link, i.e. the `/imgres?...` URL a browser copies from the result tile), plus `sourcePageUrl`, `title`, `sourceName`, `thumbnailUrl`, `width`, `height` and `fileSize` where available. Set `proxy_country` to target a market: the Google market (`gl`) follows it automatically, and `gl` is only an optional override. `pages` fetches up to 5 result pages of ~100 each; every page fetched is billed as one request. `time_range` (past hour/day/week/month/year) or `date_from`/`date_to` limit the results to images Google found in that period, so a repeated scan returns only what is new.",
     "params": [
       {
         "name": "q",
@@ -844,6 +844,24 @@ export const PLUGINS: PluginInfo[] = [
         "type": "string",
         "required": false,
         "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Image results are market-specific."
+      },
+      {
+        "name": "time_range",
+        "type": "string",
+        "required": false,
+        "description": "Only images Google found within this recent period: `hour`, `day`, `week`, `month` or `year` (Google Images' Tools > Time filter). Use it to get just the new results on repeated scans. Cannot be combined with `date_from`/`date_to`."
+      },
+      {
+        "name": "date_from",
+        "type": "string",
+        "required": false,
+        "description": "Only images Google found on or after this date (YYYY-MM-DD). Works alone or with `date_to`; cannot be combined with `time_range`."
+      },
+      {
+        "name": "date_to",
+        "type": "string",
+        "required": false,
+        "description": "Only images Google found on or before this date (YYYY-MM-DD). Works alone or with `date_from`; cannot be combined with `time_range`."
       }
     ]
   },

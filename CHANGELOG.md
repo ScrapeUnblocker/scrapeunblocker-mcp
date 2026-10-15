@@ -2,6 +2,12 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.3.4
+
+- Plugin catalog follows SDK 0.12.0: `google_images` takes `time_range` (hour,
+  day, week, month or year) or `date_from` / `date_to` (YYYY-MM-DD) to return
+  only the images Google found in that period.
+
 ## 0.3.3
 
 - Plugin catalog: the Temu plugins are no longer listed.
