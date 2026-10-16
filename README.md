@@ -18,6 +18,7 @@ You bring your **own** API key. Nothing is shared or proxied through us.
 | `google_search` | Run a Google search and return organic results as JSON. |
 | `list_plugins` | List the ready-made site plugins (100+: Amazon, Walmart, Zillow, Booking.com, Indeed, Google Trends, YouTube, App Store, Ahrefs, ...) with their parameters. Free - it calls nothing. |
 | `run_plugin` | Run one site plugin and return its structured JSON. |
+| `amazon_search`, `amazon_product`, `amazon_reviews`, `walmart_search`, `ebay_search`, `google_shopping`, `google_local`, `maps_place_details`, `google_images`, `youtube_search`, `youtube_transcript`, `zillow_search`, `indeed_jobs`, `trustpilot_reviews`, `booking_hotels` | The most-used site plugins as tools of their own, each with its parameters in the tool schema - one call, no `list_plugins` lookup. Same JSON as `run_plugin`. |
 
 ### Site plugins (structured JSON for known sites)
 
@@ -25,7 +26,8 @@ For many popular sites there is a plugin that returns the data already
 parsed - a Target search, a Zillow listing search, an app's App Store reviews,
 Google Trends for a few keywords. The model calls `list_plugins` (optionally
 with `search: "zillow"` or a `category`) to find the plugin and its
-parameters, then `run_plugin` with `name` and `params`:
+parameters, then `run_plugin` with `name` and `params` (the most-used plugins, listed in
+the table above, can also be called directly as their own tools):
 
 ```json
 { "name": "target_search", "params": { "query": "coffee maker", "max_results": 20 } }

@@ -2,6 +2,16 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.4.0
+
+- The 15 most-used site plugins are now tools of their own: `amazon_search`,
+  `amazon_product`, `amazon_reviews`, `walmart_search`, `ebay_search`,
+  `google_shopping`, `google_local`, `maps_place_details`, `google_images`,
+  `youtube_search`, `youtube_transcript`, `zillow_search`, `indeed_jobs`,
+  `trustpilot_reviews`, `booking_hotels`. Their parameters are in the tool
+  schema, so a model calls them in one step. Every plugin, these included,
+  still runs through `list_plugins` / `run_plugin`.
+
 ## 0.3.5
 
 - Dependencies: `@modelcontextprotocol/sdk` 1.32.1 (GHSA-6qxp-vccf-f47h, fixed in

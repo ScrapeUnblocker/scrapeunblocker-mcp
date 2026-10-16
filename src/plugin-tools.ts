@@ -4,6 +4,9 @@
  *
  * Two tools over a catalog rather than one tool per plugin: a hundred tool
  * definitions would fill the model's context before the user asked anything.
+ * A short list of the most-asked-for plugins (FEATURED_PLUGINS) also gets a
+ * tool of its own, so a model reaches them in one call and MCP directories show
+ * them; the rest stay behind list_plugins / run_plugin.
  * The catalog (./plugin-catalog.ts) is generated from the public OpenAPI spec;
  * this file is the same in scrapeunblocker-mcp and scrapeunblocker-mcp-remote.
  */
@@ -18,6 +21,29 @@ const MAX_OUTPUT_CHARS = 100_000;
 const BY_NAME = new Map(PLUGINS.map((p) => [p.name, p]));
 const NAMES = PLUGINS.map((p) => p.name) as [string, ...string[]];
 const CATEGORIES = ALL_CATEGORIES as [string, ...string[]];
+
+/**
+ * Plugins registered as tools of their own, named as in the catalog. Every
+ * extra tool costs context in every conversation, so keep this list short.
+ * A name the catalog no longer has is skipped rather than breaking startup.
+ */
+export const FEATURED_PLUGINS = [
+  "amazon_search",
+  "amazon_product",
+  "amazon_reviews",
+  "walmart_search",
+  "ebay_search",
+  "google_shopping",
+  "google_local",
+  "maps_place_details",
+  "google_images",
+  "youtube_search",
+  "youtube_transcript",
+  "zillow_search",
+  "indeed_jobs",
+  "trustpilot_reviews",
+  "booking_hotels",
+];
 
 type ToolResult = { content: { type: "text"; text: string }[]; isError?: boolean };
 
@@ -102,8 +128,51 @@ function prepare(p: PluginInfo, params: Record<string, ParamValue>): Record<stri
   return out;
 }
 
+/** The zod type for one catalog parameter; list values are accepted where the API takes several. */
+function paramType(q: PluginParam): z.ZodTypeAny {
+  const scalar = (t: string | undefined): z.ZodTypeAny =>
+    t === "integer" ? z.number().int() : t === "number" ? z.number() : t === "boolean" ? z.boolean() : z.string();
+  let type: z.ZodTypeAny;
+  if (q.type === "array") {
+    const item = scalar(q.items);
+    type = z.union([z.array(item), item]);
+  } else if (q.enum && q.enum.length && q.enum.every((v) => typeof v === "string")) {
+    type = z.enum(q.enum as [string, ...string[]]);
+    if (q.join) type = z.union([type, z.array(type)]);
+  } else {
+    type = scalar(q.type);
+    if (q.join) type = z.union([type, z.array(type)]);
+  }
+  const extras = [
+    q.enum && !(q.enum.every((v) => typeof v === "string")) ? `One of: ${q.enum.join(", ")}.` : "",
+    q.default !== undefined ? `Default: ${String(q.default)}.` : "",
+  ].filter(Boolean);
+  const description = [q.description, ...extras].filter(Boolean).join(" ");
+  if (description) type = type.describe(description);
+  return q.required ? type : type.optional();
+}
+
 export function registerPluginTools(server: McpServer, options: PluginToolsOptions): void {
   const annotations = { readOnlyHint: true, openWorldHint: true, destructiveHint: false, ...options.annotations };
+
+  async function run(plugin: PluginInfo, raw: Record<string, ParamValue>): Promise<ToolResult> {
+    const blocked = options.blocked?.();
+    if (blocked) return blocked;
+    const params = prepare(plugin, raw);
+    if (typeof params === "string") return text(`${params}\n\n${details(plugin)}`, true);
+    try {
+      const result = await options.call(plugin.path, params);
+      const body = JSON.stringify(result);
+      if (body.length <= MAX_OUTPUT_CHARS) return text(body);
+      return text(
+        body.slice(0, MAX_OUTPUT_CHARS) +
+          `\n\n[Cut at ${MAX_OUTPUT_CHARS} of ${body.length} characters - ask for fewer results ` +
+          "(max_results) or a narrower filter to get the whole answer.]",
+      );
+    } catch (err) {
+      return text(options.errorText(err), true);
+    }
+  }
 
   server.registerTool(
     "list_plugins",
@@ -167,24 +236,29 @@ export function registerPluginTools(server: McpServer, options: PluginToolsOptio
           .describe("The plugin's parameters, e.g. {\"query\": \"coffee maker\", \"max_results\": 20}."),
       },
     },
-    async (args) => {
-      const blocked = options.blocked?.();
-      if (blocked) return blocked;
-      const plugin = BY_NAME.get(args.name)!;
-      const params = prepare(plugin, args.params ?? {});
-      if (typeof params === "string") return text(`${params}\n\n${details(plugin)}`, true);
-      try {
-        const result = await options.call(plugin.path, params);
-        const body = JSON.stringify(result);
-        if (body.length <= MAX_OUTPUT_CHARS) return text(body);
-        return text(
-          body.slice(0, MAX_OUTPUT_CHARS) +
-            `\n\n[Cut at ${MAX_OUTPUT_CHARS} of ${body.length} characters - ask for fewer results ` +
-            "(max_results) or a narrower filter to get the whole answer.]",
-        );
-      } catch (err) {
-        return text(options.errorText(err), true);
-      }
-    },
+    async (args) => run(BY_NAME.get(args.name)!, args.params ?? {}),
   );
+
+  for (const name of FEATURED_PLUGINS) {
+    const plugin = BY_NAME.get(name);
+    if (!plugin) continue;
+    const shape = Object.fromEntries(plugin.params.map((q) => [q.name, paramType(q)]));
+    server.registerTool(
+      plugin.name,
+      {
+        title: plugin.title,
+        annotations: { title: plugin.title, ...annotations },
+        description:
+          `${plugin.description} Returns JSON. Billed like an API request; listing plugins ` +
+          "bill one unit per result page they fetch, so keep max_results modest.",
+        inputSchema: shape,
+      },
+      async (args) => {
+        const raw = Object.fromEntries(
+          Object.entries(args as Record<string, unknown>).filter(([, v]) => v !== undefined),
+        ) as Record<string, ParamValue>;
+        return run(plugin, raw);
+      },
+    );
+  }
 }

@@ -15,7 +15,7 @@ import { z } from "zod";
 import { APIError, ScrapeUnblockerClient } from "scrapeunblocker";
 import { registerPluginTools } from "./plugin-tools.js";
 
-const VERSION = "0.3.5";
+const VERSION = "0.4.0";
 
 /** Default API host, matching the SDK. */
 const DEFAULT_BASE_URL = "https://api.scrapeunblocker.com";
@@ -582,7 +582,7 @@ server.registerTool(
 );
 
 // ---------------------------------------------------------------------------
-// Tools: list_plugins, run_plugin
+// Tools: list_plugins, run_plugin and one tool per featured plugin
 // ---------------------------------------------------------------------------
 registerPluginTools(server, {
   call: (path, params) => client().plugin(path, params),
