@@ -2,6 +2,12 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.3.5
+
+- Dependencies: `@modelcontextprotocol/sdk` 1.32.1 (GHSA-6qxp-vccf-f47h, fixed in
+  1.31.0) and patched transitive `proxy-addr`, `fast-uri`, `hono`, `ip-address`
+  and `qs`; `npm audit` is clean. No behaviour change.
+
 ## 0.3.4
 
 - Plugin catalog follows SDK 0.12.0: `google_images` takes `time_range` (hour,
