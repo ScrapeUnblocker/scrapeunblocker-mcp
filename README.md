@@ -12,7 +12,8 @@ You bring your **own** API key. Nothing is shared or proxied through us.
 
 | Tool | What it does |
 |------|--------------|
-| `fetch_html` | Fetch the fully rendered HTML of a URL (optionally after running interactive browser `steps`). |
+| `fetch_html` | Fetch the fully rendered HTML of a URL. |
+| `browse_page` | Run interactive browser `steps` on a page (click, type, select, scroll, wait), then return the resulting HTML. Not read-only: it acts on the website. |
 | `list_elements` | List a page's notable elements with a ready-to-use selector for each (selector discovery). |
 | `fetch_parsed` | Fetch a page and return AI-parsed structured JSON. |
 | `google_search` | Run a Google search and return organic results as JSON. |
@@ -43,7 +44,7 @@ Each run is billed like an API request.
 
 Some pages only reveal what you need after you interact with them - accept a
 cookie banner, click a tab, type into a search box and submit, or scroll to
-trigger lazy loading. Pass an optional `steps` array to `fetch_html` and those
+trigger lazy loading. Pass a `steps` array to `browse_page` and those
 actions run in a **real browser**, in order, after the page loads; the resulting
 HTML is then returned.
 
@@ -60,8 +61,9 @@ Available actions:
 | `press_key` | `value` (`Enter`, `Tab`, `Escape`, `Backspace`, `Delete`, `Space`, `Arrow*`, `Home`, `End`, `PageUp`, `PageDown`) |
 | `scroll` | `value` (`"bottom"` or a pixel offset) |
 
-Steps are **not idempotent** - they run once per call. If a step fails,
-`fetch_html` returns which step failed, why, and the page HTML at that moment so
+Steps are **not idempotent** - they run once per call - and they act on the
+website, so `browse_page` is the one tool not marked read-only. If a step fails,
+`browse_page` returns which step failed, why, and the page HTML at that moment so
 you can fix the selector and retry.
 
 ### List elements (discover selectors first)
@@ -76,7 +78,7 @@ you can fix the selector and retry.
 ```
 
 The natural workflow is **discover, then act**: call `list_elements` to find the
-selectors you need, then pass matching `steps` to `fetch_html` to click/type/
+selectors you need, then pass matching `steps` to `browse_page` to click/type/
 select and capture the resulting HTML.
 
 ## Get an API key
@@ -140,7 +142,7 @@ SCRAPEUNBLOCKER_KEY=your_api_key_here npx -y scrapeunblocker-mcp
 
 - "Fetch the HTML of https://www.example-shop.com/product/123 and list the price."
 - "This page keeps blocking me: <url>. Use fetch_html to get it."
-- "List the elements on <url>, then use fetch_html steps to type 'laptop' into the search box, press Enter, wait for the results, and give me the HTML."
+- "List the elements on <url>, then use browse_page to type 'laptop' into the search box, press Enter, wait for the results, and give me the HTML."
 - "Search Google for 'best running shoes 2026' and give me the top 5 links."
 - "Read https://en.wikipedia.org/wiki/Web_scraping as Markdown and summarise it in five bullets."
 - "Search the web for the current population of Vilnius and cite the pages you read."

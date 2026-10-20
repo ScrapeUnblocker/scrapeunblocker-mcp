@@ -16,7 +16,7 @@ import { APIError, ScrapeUnblockerClient } from "scrapeunblocker";
 import { registerPluginTools } from "./plugin-tools.js";
 import { registerReadingTools } from "./reading-tools.js";
 
-const VERSION = "0.5.0";
+const VERSION = "0.6.0";
 
 /** Default API host, matching the SDK. */
 const DEFAULT_BASE_URL = "https://api.scrapeunblocker.com";
@@ -175,7 +175,7 @@ const server = new McpServer({
 });
 
 // ---------------------------------------------------------------------------
-// Shared schema for interactive browser steps (used by fetch_html).
+// Shared schema for interactive browser steps (used by browse_page).
 // ---------------------------------------------------------------------------
 
 /**
@@ -294,15 +294,8 @@ server.registerTool(
       "bypassing anti-bot protection (Cloudflare, DataDome, PerimeterX, Akamai, " +
       "Shape). Use this when a normal fetch is blocked (403/429, captcha, " +
       "'access denied') or when the page needs a real browser to render. " +
-      "Returns the raw HTML as text.\n\n" +
-      "For pages that need interaction (accept a cookie banner, click a tab, " +
-      "type into a search box, scroll to trigger lazy loading) pass `steps`: an " +
-      "ordered list of browser actions run in a real browser AFTER the page " +
-      "loads, then the resulting HTML is returned. Workflow: first call the " +
-      "`list_elements` tool to discover the real selectors on the page, then " +
-      "build `steps` against them. Steps are NOT idempotent - they run once per " +
-      "call. If a step fails, this tool returns which step failed, why, and the " +
-      "page HTML at that moment so you can fix the selector and retry.",
+      "Returns the raw HTML as text. To read or summarise a page, fetch_markdown " +
+      "is much smaller. To click, type or scroll before capturing, use browse_page.",
     inputSchema: {
       url: z.string().url().describe("The absolute URL to fetch (http/https)."),
       proxy_country: z
@@ -335,31 +328,94 @@ server.registerTool(
         .positive()
         .optional()
         .describe("Extra seconds to wait after load before capturing the HTML."),
-      steps: z
-        .array(stepSchema)
-        .optional()
-        .describe(
-          "Optional ordered browser actions to run in a real browser after the " +
-            "page loads, before the HTML is captured. Use `list_elements` first " +
-            "to find selectors. Runs once (not idempotent).",
-        ),
     },
   },
   async (args) => {
     try {
-      // No steps: use the typed SDK path (with its retry logic).
-      if (!args.steps || args.steps.length === 0) {
-        const html = await client().getPageSource(args.url, {
-          proxyCountry: args.proxy_country,
-          method: args.wait_method,
-          value: args.wait_value,
-          methodTimeout: args.method_timeout_seconds,
-          timeSleep: args.sleep_seconds,
-        });
-        return { content: [{ type: "text", text: html }] };
-      }
+      const html = await client().getPageSource(args.url, {
+        proxyCountry: args.proxy_country,
+        method: args.wait_method,
+        value: args.wait_value,
+        methodTimeout: args.method_timeout_seconds,
+        timeSleep: args.sleep_seconds,
+      });
+      return { content: [{ type: "text", text: html }] };
+    } catch (err) {
+      return errorResult(args.url, err);
+    }
+  },
+);
 
-      // Steps: raw call so we can return HTML on success and read the 422
+// ---------------------------------------------------------------------------
+// Tool: browse_page
+// ---------------------------------------------------------------------------
+// Separate from fetch_html because it acts on the target site (clicks, typing,
+// form submits), so it cannot carry the read-only annotation.
+server.registerTool(
+  "browse_page",
+  {
+    title: "Interact with a page, then capture it",
+    annotations: {
+      title: "Interact with a page, then capture it",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
+    description:
+      "Load a web page in a real browser through ScrapeUnblocker, run an ordered " +
+      "list of browser actions on it (accept a cookie banner, click a tab, type " +
+      "into a search box, choose an option, press a key, scroll to trigger lazy " +
+      "loading, wait), then return the resulting HTML. Workflow: first call the " +
+      "`list_elements` tool to discover the real selectors on the page, then " +
+      "build `steps` against them. Steps act on the website and are NOT " +
+      "idempotent - they run once per call; never use them to buy, post, delete " +
+      "or change anything unless the user asked for exactly that. If a step " +
+      "fails, this tool returns which step failed, why, and the page HTML at " +
+      "that moment so you can fix the selector and retry. Billed as one request.",
+    inputSchema: {
+      url: z.string().url().describe("The absolute URL to open (http/https)."),
+      steps: z
+        .array(stepSchema)
+        .min(1)
+        .describe(
+          "Ordered browser actions to run in a real browser after the page " +
+            "loads, before the HTML is captured. Use `list_elements` first to " +
+            "find selectors. Runs once (not idempotent).",
+        ),
+      proxy_country: z
+        .string()
+        .length(2)
+        .optional()
+        .describe(
+          "Optional ISO 3166-1 alpha-2 country code to route through, e.g. 'US', 'GB', 'DE'.",
+        ),
+      wait_method: z
+        .enum(["css", "js"])
+        .optional()
+        .describe(
+          "Optional render-wait before the steps run: 'css' waits for a selector, 'js' waits for a JS expression to be truthy.",
+        ),
+      wait_value: z
+        .string()
+        .optional()
+        .describe("The CSS selector or JS expression paired with wait_method."),
+      method_timeout_seconds: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Cap in seconds for the render-wait method."),
+      sleep_seconds: z
+        .number()
+        .positive()
+        .optional()
+        .describe("Extra seconds to wait after load."),
+    },
+  },
+  async (args) => {
+    try {
+      // Raw call so we can return HTML on success and read the 422
       // step_failed body on failure.
       const res = await getPageSourceRaw({
         url: args.url,
@@ -445,7 +501,7 @@ server.registerTool(
       "type, placeholder, aria_label, href, ...). Read-only and does not " +
       "interact with the page. This is the discovery half of interactive " +
       "scraping: call `list_elements` to find the selectors you need, then pass " +
-      "matching `steps` to `fetch_html` to click/type/select and capture the " +
+      "matching `steps` to `browse_page` to click/type/select and capture the " +
       "resulting HTML.",
     inputSchema: {
       url: z

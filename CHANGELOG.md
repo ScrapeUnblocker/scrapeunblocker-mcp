@@ -2,6 +2,14 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.6.0
+
+- Browser `steps` moved from `fetch_html` to a new tool, `browse_page`.
+  Steps click, type and submit on the target website, so the tool that runs
+  them is annotated as not read-only (`readOnlyHint: false`,
+  `destructiveHint: true`); `fetch_html` and every other tool stay read-only.
+  Clients that called `fetch_html` with `steps` call `browse_page` instead.
+
 ## 0.5.0
 
 - New `fetch_markdown` tool: reads a page in a real browser and returns clean
