@@ -16,6 +16,8 @@ You bring your **own** API key. Nothing is shared or proxied through us.
 | `list_elements` | List a page's notable elements with a ready-to-use selector for each (selector discovery). |
 | `fetch_parsed` | Fetch a page and return AI-parsed structured JSON. |
 | `google_search` | Run a Google search and return organic results as JSON. |
+| `fetch_markdown` | Fetch a page and return it as clean Markdown: the main content with absolute links, without scripts, styles, navigation or footer. Usually 2-25% the size of the HTML, so it is the cheap way for a model to read a page. |
+| `search_and_read` | Search Google and read the top results in one call: Google's AI Overview (when there is one), the first 1-5 result pages as Markdown, and the other results as title, URL and snippet. Billed as one search plus one request per page read. |
 | `list_plugins` | List the ready-made site plugins (100+: Amazon, Walmart, Zillow, Booking.com, Indeed, Google Trends, YouTube, App Store, Ahrefs, ...) with their parameters. Free - it calls nothing. |
 | `run_plugin` | Run one site plugin and return its structured JSON. |
 | `amazon_search`, `amazon_product`, `amazon_reviews`, `walmart_search`, `ebay_search`, `google_shopping`, `google_local`, `maps_place_details`, `google_images`, `youtube_search`, `youtube_transcript`, `zillow_search`, `indeed_jobs`, `trustpilot_reviews`, `booking_hotels` | The most-used site plugins as tools of their own, each with its parameters in the tool schema - one call, no `list_plugins` lookup. Same JSON as `run_plugin`. |
@@ -140,6 +142,8 @@ SCRAPEUNBLOCKER_KEY=your_api_key_here npx -y scrapeunblocker-mcp
 - "This page keeps blocking me: <url>. Use fetch_html to get it."
 - "List the elements on <url>, then use fetch_html steps to type 'laptop' into the search box, press Enter, wait for the results, and give me the HTML."
 - "Search Google for 'best running shoes 2026' and give me the top 5 links."
+- "Read https://en.wikipedia.org/wiki/Web_scraping as Markdown and summarise it in five bullets."
+- "Search the web for the current population of Vilnius and cite the pages you read."
 - "Find coffee makers on Target under $50 and compare them with Walmart's."
 - "Show Google Trends for 'coffee' vs 'tea' in the US over the last year."
 - "What are the newest App Store reviews of WhatsApp saying?"

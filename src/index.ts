@@ -14,8 +14,9 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { APIError, ScrapeUnblockerClient } from "scrapeunblocker";
 import { registerPluginTools } from "./plugin-tools.js";
+import { registerReadingTools } from "./reading-tools.js";
 
-const VERSION = "0.4.0";
+const VERSION = "0.5.0";
 
 /** Default API host, matching the SDK. */
 const DEFAULT_BASE_URL = "https://api.scrapeunblocker.com";
@@ -287,6 +288,7 @@ server.registerTool(
   "fetch_html",
   {
     title: "Fetch page HTML",
+    annotations: { title: "Fetch page HTML", readOnlyHint: true, openWorldHint: true, destructiveHint: false },
     description:
       "Fetch the fully rendered HTML of any web page through ScrapeUnblocker, " +
       "bypassing anti-bot protection (Cloudflare, DataDome, PerimeterX, Akamai, " +
@@ -435,6 +437,7 @@ server.registerTool(
   "list_elements",
   {
     title: "List page elements (selector discovery)",
+    annotations: { title: "List page elements (selector discovery)", readOnlyHint: true, openWorldHint: true, destructiveHint: false },
     description:
       "Load a page through ScrapeUnblocker and return a JSON list of its notable " +
       "elements (links, inputs, buttons, selects, etc.) with a ready-to-use " +
@@ -499,6 +502,7 @@ server.registerTool(
   "fetch_parsed",
   {
     title: "Fetch AI-parsed page data",
+    annotations: { title: "Fetch AI-parsed page data", readOnlyHint: true, openWorldHint: true, destructiveHint: false },
     description:
       "Fetch a web page through ScrapeUnblocker and return AI-parsed structured " +
       "JSON instead of raw HTML (e.g. product details, article content). Best " +
@@ -546,6 +550,7 @@ server.registerTool(
   "google_search",
   {
     title: "Google search results",
+    annotations: { title: "Google search results", readOnlyHint: true, openWorldHint: true, destructiveHint: false },
     description:
       "Run a Google search through ScrapeUnblocker and return the organic " +
       "results as structured JSON. Use this to discover URLs before fetching " +
@@ -580,6 +585,16 @@ server.registerTool(
     }
   },
 );
+
+// ---------------------------------------------------------------------------
+// Tools: fetch_markdown, search_and_read
+// ---------------------------------------------------------------------------
+registerReadingTools(server, {
+  fetchHtml: (url, options) => client().getPageSource(url, options),
+  serp: (keyword, options) => client().serp(keyword, options),
+  fetchError: errorResult,
+  errorText,
+});
 
 // ---------------------------------------------------------------------------
 // Tools: list_plugins, run_plugin and one tool per featured plugin

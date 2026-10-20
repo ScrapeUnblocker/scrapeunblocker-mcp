@@ -2,6 +2,19 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.5.0
+
+- New `fetch_markdown` tool: reads a page in a real browser and returns clean
+  Markdown (main content, absolute links, no scripts, styles, navigation or
+  footer; tables as GFM tables). Usually 2-25% the size of `fetch_html`'s HTML.
+  `main_content_only: false` keeps the whole page.
+- New `search_and_read` tool: a Google search plus its top 1-5 result pages as
+  Markdown in one call, with Google's AI Overview when there is one and the
+  other results as title, URL and snippet. Billed as one search plus one
+  request per page read.
+- The core tools (`fetch_html`, `list_elements`, `fetch_parsed`,
+  `google_search`) now carry read-only tool annotations, as the plugin tools do.
+
 ## 0.4.0
 
 - The 15 most-used site plugins are now tools of their own: `amazon_search`,
