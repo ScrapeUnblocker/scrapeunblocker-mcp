@@ -2,6 +2,18 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.8.0
+
+- 16 new site plugins in `list_plugins` / `run_plugin`: `google_hotels`,
+  `google_hotels_property`, `google_news`, `google_ads_transparency` and
+  `google_ads_transparency_advertisers` (Google), `shopee_search`,
+  `shopee_product`, `taobao_search`, `taobao_product`, `smyths_inventory`,
+  `smyths_details`, `smyths_search`, `smyths_category`, `wish_search` and
+  `wish_product` (E-commerce), and `upwork_jobs` (Jobs). 124 plugins in all.
+- `google_shopping`: its description lists the `currencyCode` and Google
+  product ids (`productId`, `catalogId`, `offerId`) the results now carry.
+- No tool names or inputs changed.
+
 ## 0.7.0
 
 - `fetch_markdown` and `search_and_read` get the Markdown from the API

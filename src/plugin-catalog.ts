@@ -1011,7 +1011,7 @@ export const PLUGINS: PluginInfo[] = [
     "category": "Google",
     "path": "/goods/google-shopping",
     "fixed": {},
-    "description": "Runs the Google Shopping vertical (`udm=28`) for `q` and returns the product cards as JSON: `title`, `price`, `currency`, `originalPrice`, `discount`, `merchant`, `rating` and `reviewCount`. Set `proxy_country`/`gl` to target a market (prices/merchants are region-specific) and `min_price`/`max_price` to filter. One render returns the first page of products (v1). Note: Google Shopping exposes no per-product URL, so `url` is omitted and `image` is best-effort.",
+    "description": "Runs the Google Shopping vertical (`udm=28`) for `q` and returns the product cards as JSON: `title`, `price`, `currency`, `currencyCode`, `originalPrice`, `discount`, `merchant`, `rating`, `reviewCount` and Google's own ids for the product (`productId`, `catalogId`, `offerId` - stable across searches, for tracking one product). Set `proxy_country`/`gl` to target a market (prices/merchants are region-specific) and `min_price`/`max_price` to filter. One render returns the first page of products (v1). Note: Google Shopping exposes no per-product URL, so `url` is omitted and `image` is best-effort.",
     "params": [
       {
         "name": "q",
@@ -1099,6 +1099,319 @@ export const PLUGINS: PluginInfo[] = [
         "type": "string",
         "required": false,
         "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Jobs are location-sensitive; pick the market you want."
+      }
+    ]
+  },
+  {
+    "name": "google_hotels",
+    "title": "Scrape Google Hotels search results (prices, ratings, amenities)",
+    "category": "Google",
+    "path": "/travel/google-hotels",
+    "fixed": {},
+    "description": "Runs a Google Hotels search for `q` and returns the properties as JSON: `name`, `type` (hotel / vacation_rental), `propertyToken`, `price` for the stay (`perNight`, `perNightWithTaxes`, `total`, `totalWithTaxes`, `taxes`, Google's `display` string), `deal`, `rating`, `reviews`, `ratingsBreakdown`, `reviewTopics`, `hotelClass`, `stars`, `amenities`, `description`, `website`, `latitude`/`longitude`, `nearbyPlaces`, `thumbnail`, `images` and `mapsUrl`, plus the page's sponsored `ads`. A query naming one hotel returns just that hotel (`matchedProperty`). Set the stay with `check_in`/`check_out`, the party with `adults` and `children` (ages), and `currency`, `hl` (language) and `gl` (market). `applied` echoes the dates, currency and place Google actually used. Collect up to `max_results` across pages (each Google page is billed as one request, see `pagesFetched`); `nextPageToken` continues the list. Pass a `propertyToken` to `/travel/google-hotels-property` for every booking site's price.",
+    "params": [
+      {
+        "name": "q",
+        "type": "string",
+        "required": true,
+        "description": "What to search, as on Google Hotels: a place ('hotels in Paris', 'Lisbon'), an area or landmark, or a hotel name."
+      },
+      {
+        "name": "check_in",
+        "type": "string",
+        "required": false,
+        "description": "Check-in date, YYYY-MM-DD. Leave check_in and check_out empty for Google's default stay."
+      },
+      {
+        "name": "check_out",
+        "type": "string",
+        "required": false,
+        "description": "Check-out date, YYYY-MM-DD (stays of up to 30 nights)."
+      },
+      {
+        "name": "adults",
+        "type": "integer",
+        "required": false,
+        "description": "Number of adults (1-10).",
+        "default": 2
+      },
+      {
+        "name": "children",
+        "type": "string",
+        "required": false,
+        "description": "Ages of the children, comma-separated, e.g. '7,10' (up to 6)."
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "required": false,
+        "description": "Price currency, ISO 4217 (USD, EUR, GBP, ...).",
+        "default": "USD"
+      },
+      {
+        "name": "hl",
+        "type": "string",
+        "required": false,
+        "description": "Language of names, amenities and price formats, e.g. 'en', 'de', 'fr'.",
+        "default": "en"
+      },
+      {
+        "name": "gl",
+        "type": "string",
+        "required": false,
+        "description": "Market (2-letter country). Google localizes the booking sites to it.",
+        "default": "us"
+      },
+      {
+        "name": "page_token",
+        "type": "string",
+        "required": false,
+        "description": "`nextPageToken` of a previous response, to continue where it stopped."
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Properties to collect (1-100). Google serves about 20 per page; each page is billed as one request.",
+        "default": 20
+      }
+    ]
+  },
+  {
+    "name": "google_hotels_property",
+    "title": "Scrape one Google Hotels property: prices from every booking site",
+    "category": "Google",
+    "path": "/travel/google-hotels-property",
+    "fixed": {},
+    "description": "Returns one property from Google Hotels as JSON, identified by the `property_token` of a `/travel/google-hotels` result: `offers` from every booking site Google lists for the stay (`provider`, `official` for the hotel's own site, `perNight`/`perNightWithTaxes`, `total`/`totalWithTaxes`, a Google `link` to book), `rooms` with room-level rates and free-cancellation deadlines where Google shows them, the lowest `price`, `address`, `phone`, `website`, `description` and `about`, `rating`, `reviews`, `ratingsBreakdown`, `reviewTopics`, `hotelClass`, `latitude`/`longitude`, `nearbyPlaces`, `images`, `placeId` and `mapsUrl`. Set the stay with `check_in`/`check_out`, the party with `adults`/`children`, and `currency`, `hl`, `gl`. Billed as one request.",
+    "params": [
+      {
+        "name": "property_token",
+        "type": "string",
+        "required": true,
+        "description": "`propertyToken` of a /travel/google-hotels result."
+      },
+      {
+        "name": "check_in",
+        "type": "string",
+        "required": false,
+        "description": "Check-in date, YYYY-MM-DD. Leave check_in and check_out empty for Google's default stay."
+      },
+      {
+        "name": "check_out",
+        "type": "string",
+        "required": false,
+        "description": "Check-out date, YYYY-MM-DD (stays of up to 30 nights)."
+      },
+      {
+        "name": "adults",
+        "type": "integer",
+        "required": false,
+        "description": "Number of adults (1-10).",
+        "default": 2
+      },
+      {
+        "name": "children",
+        "type": "string",
+        "required": false,
+        "description": "Ages of the children, comma-separated, e.g. '7,10' (up to 6)."
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "required": false,
+        "description": "Price currency, ISO 4217 (USD, EUR, GBP, ...).",
+        "default": "USD"
+      },
+      {
+        "name": "hl",
+        "type": "string",
+        "required": false,
+        "description": "Language, e.g. 'en', 'de', 'fr'.",
+        "default": "en"
+      },
+      {
+        "name": "gl",
+        "type": "string",
+        "required": false,
+        "description": "Market (2-letter country). Google localizes the booking sites to it.",
+        "default": "us"
+      }
+    ]
+  },
+  {
+    "name": "google_news",
+    "title": "Scrape Google News (search or section)",
+    "category": "Google",
+    "path": "/search/google-news",
+    "fixed": {},
+    "description": "Searches Google News for `q`, or lists a section with `topic` (world, nation, business, technology, entertainment, sports, science, health, top, or a topic id), and returns `articles`: `position`, `title`, `url` (the publisher's article URL), `source`, `sourceUrl`, `publishedAt` (ISO 8601 UTC), `imageUrl` (+ `imageWidth`/`imageHeight`), `authors`, `googleNewsId` and `googleNewsUrl`. Metadata only - no article text. Narrow a search with `when` (e.g. '1d') or `after`/`before` dates; pick the edition with `hl` and `gl`. Google News answers a search with up to about 100 articles (no paging - use date windows to go further back). One unit per call.",
+    "params": [
+      {
+        "name": "q",
+        "type": "string",
+        "required": false,
+        "description": "Search query, e.g. 'tesla' or '\"web scraping\"'. Google News operators work: quotes, OR, -word, site:reuters.com, intitle:. Pass either `q` or `topic`."
+      },
+      {
+        "name": "topic",
+        "type": "string",
+        "required": false,
+        "description": "A section instead of a search: world, nation, business, technology, entertainment, sports, science, health, or top (the edition's headlines). A Google News topic id (the 'CAAq...' part of a news.google.com/topics/ URL) also works."
+      },
+      {
+        "name": "hl",
+        "type": "string",
+        "required": false,
+        "description": "Language of the Google News edition, e.g. 'en', 'en-GB', 'de', 'fr', 'pt-BR'.",
+        "default": "en"
+      },
+      {
+        "name": "gl",
+        "type": "string",
+        "required": false,
+        "description": "Country of the Google News edition (2-letter code), e.g. 'us', 'gb', 'de'.",
+        "default": "us"
+      },
+      {
+        "name": "when",
+        "type": "string",
+        "required": false,
+        "description": "Only articles from the last period: '1h' to '720h', '1d', '7d', '2w', '1m', '1y'. Search (`q`) only."
+      },
+      {
+        "name": "after",
+        "type": "string",
+        "required": false,
+        "description": "Only articles published after this date (YYYY-MM-DD). Search only."
+      },
+      {
+        "name": "before",
+        "type": "string",
+        "required": false,
+        "description": "Only articles published before this date (YYYY-MM-DD). Search only."
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Most articles to return, 1-250. Google News returns up to about 100 articles for a search and about 250 for a section; one call is billed one unit whatever the count.",
+        "default": 100
+      }
+    ]
+  },
+  {
+    "name": "google_ads_transparency",
+    "title": "Scrape Google ads (Ads Transparency Center)",
+    "category": "Google",
+    "path": "/ads/google-ads-transparency",
+    "fixed": {},
+    "description": "Returns an advertiser's Google ads (Search, YouTube, Display, Shopping, Maps, Play) from the Google Ads Transparency Center for competitor analysis: per ad `creativeId`, `advertiserId`/`advertiserName`, `format` (text/image/video), `firstShown`, `lastShown`, `daysShown`, `matchedDomain`, the preview (`imageUrl` with size, or `previewUrl`), `googleCreativeId`, `googleCustomerId`, `adGroupId` and `adUrl`. Pick ads by `advertiser` (name or id) or `domain`; filter with `region`, `platform`, `format` and `date_from`/`date_to`. `include_details` adds per-region reach and targeting, `include_preview` the ad's texts and YouTube video. Collects up to `max_results` (continue with `page_token`); billed one unit per page of up to 100 ads, plus one per detail and per preview fetched (`callUnits`).",
+    "params": [
+      {
+        "name": "advertiser",
+        "type": "string",
+        "required": false,
+        "description": "Advertiser to pull ads for: a name (e.g. 'Nike') - resolved to the best-matching advertiser, reported in `advertisersUsed` (a single brand name no advertiser is named like falls back to its domain) - or an advertiser id ('AR16735076323512287233'). Comma-separate up to 10. Pass `advertiser` or `domain`."
+      },
+      {
+        "name": "domain",
+        "type": "string",
+        "required": false,
+        "description": "Website the ads point to, e.g. 'nike.com' (ads of every advertiser for that domain)."
+      },
+      {
+        "name": "region",
+        "type": "string",
+        "required": false,
+        "description": "Where the ads were shown: a 2-letter country code ('US', 'DE'), a comma list of them, or 'anywhere' (default)."
+      },
+      {
+        "name": "platform",
+        "type": "string",
+        "required": false,
+        "description": "Only ads shown on these platforms (comma list): search, youtube, maps, play, shopping."
+      },
+      {
+        "name": "format",
+        "type": "string",
+        "required": false,
+        "description": "Only one ad format: text, image or video."
+      },
+      {
+        "name": "date_from",
+        "type": "string",
+        "required": false,
+        "description": "Only ads shown on or after this date (YYYY-MM-DD)."
+      },
+      {
+        "name": "date_to",
+        "type": "string",
+        "required": false,
+        "description": "Only ads shown on or before this date (YYYY-MM-DD)."
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "required": false,
+        "description": "Order of the ads: 'last_shown' (most recently shown first).",
+        "default": "last_shown"
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Ads to collect, 1-1000. Pages of up to 100 are fetched as needed; each page is billed one unit.",
+        "default": 100
+      },
+      {
+        "name": "page_token",
+        "type": "string",
+        "required": false,
+        "description": "Continue a previous call: its `nextPageToken`."
+      },
+      {
+        "name": "include_details",
+        "type": "boolean",
+        "required": false,
+        "description": "Add `details` per ad: regions shown with first/last date (plus impressions per platform for EU regions), EU reach, disclosed targeting and all preview variations. One unit per ad, for up to 300 ads per call.",
+        "default": false
+      },
+      {
+        "name": "include_preview",
+        "type": "boolean",
+        "required": false,
+        "description": "Add `preview` per ad: what it shows - headline, description and display URL of text ads, product title and merchant of shopping ads, image URLs, the YouTube video of video ads. One unit per ad that has a preview script, for up to 40 ads per call. Search text ads often exist only as an image (`imageUrl`).",
+        "default": false
+      }
+    ]
+  },
+  {
+    "name": "google_ads_transparency_advertisers",
+    "title": "Look up Google advertisers (Ads Transparency Center)",
+    "category": "Google",
+    "path": "/ads/google-ads-transparency-advertisers",
+    "fixed": {},
+    "description": "Finds advertisers on the Google Ads Transparency Center by name: `advertisers` (`advertiserId` to use with /ads/google-ads-transparency, `name`, `country`, `creativesMin`/`creativesMax` - how many ads they ran - and `verified`) and matching website `domains`. One unit per call.",
+    "params": [
+      {
+        "name": "q",
+        "type": "string",
+        "required": true,
+        "description": "Advertiser name or brand to look up, e.g. 'nike'."
+      },
+      {
+        "name": "region",
+        "type": "string",
+        "required": false,
+        "description": "Count ads shown in these regions only: a 2-letter country code, a comma list, or 'anywhere' (default)."
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Most advertisers (and domains) to return, 1-50.",
+        "default": 10
       }
     ]
   },
@@ -2238,6 +2551,353 @@ export const PLUGINS: PluginInfo[] = [
         "type": "string",
         "required": false,
         "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE')."
+      }
+    ]
+  },
+  {
+    "name": "smyths_inventory",
+    "title": "Smyths Toys UK product stock, price, details and listings (mode=product)",
+    "category": "E-commerce",
+    "path": "/marketplace/smyths-inventory",
+    "fixed": {
+      "mode": "product"
+    },
+    "description": "Smyths Toys UK (smythstoys.com) as JSON, in four modes. `mode=product` (the default when `code` is given) returns one product's stock and price as the JSON Smyths' own storefront reads (`/api/uk/en-gb/product/product-inventory`), unchanged: `code`, `type`, `prices` (`price`, `value`, `wasPrice`, `thenPrice`, `rrpPrice`, `discountedPercentage`), `hdSection` (home delivery: `stockStatus`, `stockMessage`, `isAvailableForDelivery`, `isPreOrder`, `expectedStockDate`, delivery messages), `ccSection` (click & collect: the same stock fields plus `storeName`, `deliveryMessage`, `storeClosed`), `ageSuitabilities`, `carrierType`, marketing messages and decals. `code` takes a product code (`225095`), a product or bundle page link or a product-inventory link; one product is one billed request. `mode=details&code=` returns the JSON Smyths' product page is built from (`/api/uk/en-gb/product`, a bundle's from `/api/uk/en-gb/b`), unchanged, one billed request: `name`, `brand`, `ean`, `description` (HTML), `webFeatures` (the key features list), the safety warnings `euWarning`, `safetyText`, `urgentSafetyTextHeading` and `urgentSafetyTextDescription`, `productImages` (the gallery: `thumbnail`, `original` and `zoom` per `galleryIndex`, videos as `youtubeUrl`), `prices`, `averageRating`, `numberOfReviews`, `breadcrumb`, `categoryHierarchy`, `ageSuitabilities`, `assemblyRequired` and more; a bundle adds `subProducts`. `url` and `breadcrumb` paths are relative to https://www.smythstoys.com/uk/en-gb. `mode=search&query=` and `mode=category&category=` find product codes: they return `products` (`code`, `name`, `url`, `prices` with the same fields, `currency`, `image`, `averageRating`, `productType` - `BUNDLE` for bundles - and `decals`) with `totalResults`, `totalPages` and `nextPage`, 60 per page; a category also returns its `title`, `breadcrumbs` and `subcategories` (`code`, `name`, `count`). Smyths' search returns its best 240 matches at most, a category every product it holds. Listings collect up to `max_results` from `page` on, billed one unit per page.",
+    "params": [
+      {
+        "name": "code",
+        "type": "string",
+        "required": true,
+        "description": "mode=product and mode=details: product code ('225095'), product or bundle page link, or product-inventory link."
+      },
+      {
+        "name": "bundle",
+        "type": "boolean",
+        "required": false,
+        "description": "mode=product and mode=details: ask for a bundle. A bundle page link sets it, and a code Smyths does not answer as a product is asked again as a bundle.",
+        "default": false
+      }
+    ]
+  },
+  {
+    "name": "smyths_details",
+    "title": "Smyths Toys UK product stock, price, details and listings (mode=details)",
+    "category": "E-commerce",
+    "path": "/marketplace/smyths-inventory",
+    "fixed": {
+      "mode": "details"
+    },
+    "description": "Smyths Toys UK (smythstoys.com) as JSON, in four modes. `mode=product` (the default when `code` is given) returns one product's stock and price as the JSON Smyths' own storefront reads (`/api/uk/en-gb/product/product-inventory`), unchanged: `code`, `type`, `prices` (`price`, `value`, `wasPrice`, `thenPrice`, `rrpPrice`, `discountedPercentage`), `hdSection` (home delivery: `stockStatus`, `stockMessage`, `isAvailableForDelivery`, `isPreOrder`, `expectedStockDate`, delivery messages), `ccSection` (click & collect: the same stock fields plus `storeName`, `deliveryMessage`, `storeClosed`), `ageSuitabilities`, `carrierType`, marketing messages and decals. `code` takes a product code (`225095`), a product or bundle page link or a product-inventory link; one product is one billed request. `mode=details&code=` returns the JSON Smyths' product page is built from (`/api/uk/en-gb/product`, a bundle's from `/api/uk/en-gb/b`), unchanged, one billed request: `name`, `brand`, `ean`, `description` (HTML), `webFeatures` (the key features list), the safety warnings `euWarning`, `safetyText`, `urgentSafetyTextHeading` and `urgentSafetyTextDescription`, `productImages` (the gallery: `thumbnail`, `original` and `zoom` per `galleryIndex`, videos as `youtubeUrl`), `prices`, `averageRating`, `numberOfReviews`, `breadcrumb`, `categoryHierarchy`, `ageSuitabilities`, `assemblyRequired` and more; a bundle adds `subProducts`. `url` and `breadcrumb` paths are relative to https://www.smythstoys.com/uk/en-gb. `mode=search&query=` and `mode=category&category=` find product codes: they return `products` (`code`, `name`, `url`, `prices` with the same fields, `currency`, `image`, `averageRating`, `productType` - `BUNDLE` for bundles - and `decals`) with `totalResults`, `totalPages` and `nextPage`, 60 per page; a category also returns its `title`, `breadcrumbs` and `subcategories` (`code`, `name`, `count`). Smyths' search returns its best 240 matches at most, a category every product it holds. Listings collect up to `max_results` from `page` on, billed one unit per page.",
+    "params": [
+      {
+        "name": "code",
+        "type": "string",
+        "required": true,
+        "description": "mode=product and mode=details: product code ('225095'), product or bundle page link, or product-inventory link."
+      },
+      {
+        "name": "bundle",
+        "type": "boolean",
+        "required": false,
+        "description": "mode=product and mode=details: ask for a bundle. A bundle page link sets it, and a code Smyths does not answer as a product is asked again as a bundle.",
+        "default": false
+      }
+    ]
+  },
+  {
+    "name": "smyths_search",
+    "title": "Smyths Toys UK product stock, price, details and listings (mode=search)",
+    "category": "E-commerce",
+    "path": "/marketplace/smyths-inventory",
+    "fixed": {
+      "mode": "search"
+    },
+    "description": "Smyths Toys UK (smythstoys.com) as JSON, in four modes. `mode=product` (the default when `code` is given) returns one product's stock and price as the JSON Smyths' own storefront reads (`/api/uk/en-gb/product/product-inventory`), unchanged: `code`, `type`, `prices` (`price`, `value`, `wasPrice`, `thenPrice`, `rrpPrice`, `discountedPercentage`), `hdSection` (home delivery: `stockStatus`, `stockMessage`, `isAvailableForDelivery`, `isPreOrder`, `expectedStockDate`, delivery messages), `ccSection` (click & collect: the same stock fields plus `storeName`, `deliveryMessage`, `storeClosed`), `ageSuitabilities`, `carrierType`, marketing messages and decals. `code` takes a product code (`225095`), a product or bundle page link or a product-inventory link; one product is one billed request. `mode=details&code=` returns the JSON Smyths' product page is built from (`/api/uk/en-gb/product`, a bundle's from `/api/uk/en-gb/b`), unchanged, one billed request: `name`, `brand`, `ean`, `description` (HTML), `webFeatures` (the key features list), the safety warnings `euWarning`, `safetyText`, `urgentSafetyTextHeading` and `urgentSafetyTextDescription`, `productImages` (the gallery: `thumbnail`, `original` and `zoom` per `galleryIndex`, videos as `youtubeUrl`), `prices`, `averageRating`, `numberOfReviews`, `breadcrumb`, `categoryHierarchy`, `ageSuitabilities`, `assemblyRequired` and more; a bundle adds `subProducts`. `url` and `breadcrumb` paths are relative to https://www.smythstoys.com/uk/en-gb. `mode=search&query=` and `mode=category&category=` find product codes: they return `products` (`code`, `name`, `url`, `prices` with the same fields, `currency`, `image`, `averageRating`, `productType` - `BUNDLE` for bundles - and `decals`) with `totalResults`, `totalPages` and `nextPage`, 60 per page; a category also returns its `title`, `breadcrumbs` and `subcategories` (`code`, `name`, `count`). Smyths' search returns its best 240 matches at most, a category every product it holds. Listings collect up to `max_results` from `page` on, billed one unit per page.",
+    "params": [
+      {
+        "name": "query",
+        "type": "string",
+        "required": true,
+        "description": "mode=search: what to search for, e.g. 'lego star wars'. Smyths returns its best 240 matches at most - list a category to get every product of a range."
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "required": false,
+        "description": "Listing order. search: relevance, bestsellers, price_asc, price_desc, rating_desc, newest (the first is the default). category: bestsellers, price_asc, price_desc, rating_desc, newest (the first is the default)."
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "required": false,
+        "description": "1-based listing page to start from (60 products per page).",
+        "default": 1
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Products to collect across pages, 1-600. Each page fetched is billed one unit.",
+        "default": 60
+      }
+    ]
+  },
+  {
+    "name": "smyths_category",
+    "title": "Smyths Toys UK product stock, price, details and listings (mode=category)",
+    "category": "E-commerce",
+    "path": "/marketplace/smyths-inventory",
+    "fixed": {
+      "mode": "category"
+    },
+    "description": "Smyths Toys UK (smythstoys.com) as JSON, in four modes. `mode=product` (the default when `code` is given) returns one product's stock and price as the JSON Smyths' own storefront reads (`/api/uk/en-gb/product/product-inventory`), unchanged: `code`, `type`, `prices` (`price`, `value`, `wasPrice`, `thenPrice`, `rrpPrice`, `discountedPercentage`), `hdSection` (home delivery: `stockStatus`, `stockMessage`, `isAvailableForDelivery`, `isPreOrder`, `expectedStockDate`, delivery messages), `ccSection` (click & collect: the same stock fields plus `storeName`, `deliveryMessage`, `storeClosed`), `ageSuitabilities`, `carrierType`, marketing messages and decals. `code` takes a product code (`225095`), a product or bundle page link or a product-inventory link; one product is one billed request. `mode=details&code=` returns the JSON Smyths' product page is built from (`/api/uk/en-gb/product`, a bundle's from `/api/uk/en-gb/b`), unchanged, one billed request: `name`, `brand`, `ean`, `description` (HTML), `webFeatures` (the key features list), the safety warnings `euWarning`, `safetyText`, `urgentSafetyTextHeading` and `urgentSafetyTextDescription`, `productImages` (the gallery: `thumbnail`, `original` and `zoom` per `galleryIndex`, videos as `youtubeUrl`), `prices`, `averageRating`, `numberOfReviews`, `breadcrumb`, `categoryHierarchy`, `ageSuitabilities`, `assemblyRequired` and more; a bundle adds `subProducts`. `url` and `breadcrumb` paths are relative to https://www.smythstoys.com/uk/en-gb. `mode=search&query=` and `mode=category&category=` find product codes: they return `products` (`code`, `name`, `url`, `prices` with the same fields, `currency`, `image`, `averageRating`, `productType` - `BUNDLE` for bundles - and `decals`) with `totalResults`, `totalPages` and `nextPage`, 60 per page; a category also returns its `title`, `breadcrumbs` and `subcategories` (`code`, `name`, `count`). Smyths' search returns its best 240 matches at most, a category every product it holds. Listings collect up to `max_results` from `page` on, billed one unit per page.",
+    "params": [
+      {
+        "name": "category",
+        "type": "string",
+        "required": true,
+        "description": "mode=category: a category code ('SM060101') or a category page link (https://www.smythstoys.com/uk/en-gb/toys/action-figures-and-playsets/c/SM060101). The top categories are Toys SM0601, Baby SM0602, Outdoor SM0603 and Gaming & Tech SM0604; each listing names its subcategories."
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "required": false,
+        "description": "Listing order. search: relevance, bestsellers, price_asc, price_desc, rating_desc, newest (the first is the default). category: bestsellers, price_asc, price_desc, rating_desc, newest (the first is the default)."
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "required": false,
+        "description": "1-based listing page to start from (60 products per page).",
+        "default": 1
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Products to collect across pages, 1-600. Each page fetched is billed one unit.",
+        "default": 60
+      }
+    ]
+  },
+  {
+    "name": "wish_search",
+    "title": "Scrape Wish product search",
+    "category": "E-commerce",
+    "path": "/marketplace/wish-search",
+    "fixed": {},
+    "description": "Searches Wish (wish.com) for `query` and returns `products`: `id`, `name`, `url`, `price`, `originalPrice` (crossed-out price, when discounted), `currency`, `priceText`, `priceUsd` (Wish's USD value, comparable across markets), `shipping`, `rating`, `ratingCount`, `numBought`, `inventory`, `colors`, `sizes`, `merchant` (`id`, `name`, `rating`, `ratingCount`, `feedback`, `country`), `originCountry`, `shipsFrom`, `tileText`, `isWishPick`, `position`, `image` and `thumbnail`, plus `totalResults` and `nextPage`. Wish shows the catalogue and prices of the request's country (`proxy_country`, default US). Collects up to `max_results` from `page` on, billed one unit per page.",
+    "params": [
+      {
+        "name": "query",
+        "type": "string",
+        "required": true,
+        "description": "What to search for, e.g. 'yoga mat' or 'phone case', or a wish.com/search/... link."
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "required": false,
+        "description": "1-based results page to start from (1-300, up to 30 products per page).",
+        "default": 1
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Products to collect across pages, 1-300. Each page fetched is billed one unit.",
+        "default": 30
+      },
+      {
+        "name": "proxy_country",
+        "type": "string",
+        "required": false,
+        "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'GB', 'DE'). Wish shows the catalogue, prices and currency of that country. Default 'US' (prices in USD)."
+      }
+    ]
+  },
+  {
+    "name": "wish_product",
+    "title": "Scrape one Wish product",
+    "category": "E-commerce",
+    "path": "/marketplace/wish-product",
+    "fixed": {},
+    "description": "One Wish (wish.com) product as JSON: `id`, `name`, `url`, `price` (cheapest available variant), `originalPrice`, `currency`, `priceUsd`, `priceRange`, `shipping`, `inStock`, `rating`, `ratingCount`, `description`, `attributes`, `badges`, `images`, `merchant` (`id`, `name`, `handle`, `rating`, `ratingCount`, `tier`), `shipsFrom`, `shipsTo`, `deliveryEstimate`, `returnPolicy`, `variants` (`id`, `color`, `size`, `price`, `originalPrice`, `priceUsd`, `shipping`, `inventory`, `available`) and `topReviews` (`rating`, `comment`, `date`, `variant`, `upvotes`, `country`; no reviewer names). Prices are those of the request's country (`proxy_country`, default US). One unit per call.",
+    "params": [
+      {
+        "name": "product",
+        "type": "string",
+        "required": true,
+        "description": "A Wish product id ('5f96ad46b3f6480c7b9d7b52') or a product link (https://www.wish.com/product/..., /c/...)."
+      },
+      {
+        "name": "proxy_country",
+        "type": "string",
+        "required": false,
+        "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'GB', 'DE'). Wish shows the catalogue, prices and currency of that country. Default 'US' (prices in USD)."
+      }
+    ]
+  },
+  {
+    "name": "shopee_search",
+    "title": "Scrape Shopee product search",
+    "category": "E-commerce",
+    "path": "/marketplace/shopee-search",
+    "fixed": {},
+    "description": "Searches a Shopee market (Singapore, Indonesia, Malaysia, Thailand, Vietnam, Philippines, Taiwan or Brazil - `country`) for `q` and returns one page of results: up to 40 `products`, each with `position`, `itemId`, `shopId`, `name`, `url`, `image`, `price`, `originalPrice` (when Shopee shows the crossed-out price), `discountPercent`, `currency`, `rating` (average stars), `location` (where the seller ships from) and `labels` (promotion badges). `sort` orders the results, `min_price` / `max_price` filter them, `shop_id` keeps one shop's products (or lists the shop without `q`), and `url` takes a Shopee search or category link instead. Shopee shows one page per search, so run several sort orders or price ranges for more products. `price` is what Shopee shows a signed-out shopper, which can be a promotional or new-customer price (see `labels`). Not available: stock, units sold, rating counts and reviews (Shopee does not publish them on the pages these endpoints read). One unit per call.",
+    "params": [
+      {
+        "name": "q",
+        "type": "string",
+        "required": false,
+        "description": "What to search for, e.g. 'iphone case' or 'air fryer'. Optional with `shop_id`."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "required": false,
+        "description": "Shopee market: 'sg' (shopee.sg), 'id' (shopee.co.id), 'my' (shopee.com.my), 'th' (shopee.co.th), 'vn' (shopee.vn), 'ph' (shopee.ph), 'tw' (shopee.tw), 'br' (shopee.com.br). Default 'sg'. Prices are in that market's currency."
+      },
+      {
+        "name": "shop_id",
+        "type": "string",
+        "required": false,
+        "description": "Only this shop's products (the number in a shop's links, e.g. 442800909). Without `q` it lists the shop."
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "required": false,
+        "description": "A Shopee search or category link (e.g. https://shopee.sg/search?keyword=lego or https://shopee.sg/Cases-Covers-cat.11013350.11013434.11027839), used as it is; `q`, `country`, `shop_id`, `sort` and the price filters are then ignored."
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "required": false,
+        "description": "Result order: relevance, sales, newest, price_asc, price_desc.",
+        "default": "relevance"
+      },
+      {
+        "name": "min_price",
+        "type": "integer",
+        "required": false,
+        "description": "Lowest price, in the market's currency."
+      },
+      {
+        "name": "max_price",
+        "type": "integer",
+        "required": false,
+        "description": "Highest price, in the market's currency."
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Products to return, 1-40 (one Shopee results page).",
+        "default": 40
+      }
+    ]
+  },
+  {
+    "name": "shopee_product",
+    "title": "Scrape one Shopee product",
+    "category": "E-commerce",
+    "path": "/marketplace/shopee-product",
+    "fixed": {},
+    "description": "One Shopee product as JSON, from a product link (`url`) or `shop_id` + `item_id` + `country`: `title`, `price`, `originalPrice`, `discountPercent`, `currency`, `rating` (average stars), `labels`, `images`, `shopLocation` and `shop` (`name`, `username`, `url`, `rating`, `ratingCount`, `followers`, `itemCount`, `responseRatePercent`, `isOfficialShop`, `isPreferredPlusSeller`, `location`, `joinedAt`). With `dataLevel: full` it also has `description`, `brand`, `condition`, `categories`, `videos`, `variations` (option names), `models` (`modelId`, `name`), `attributes`, `isOfficialShop`, `isPreOrder`, `estimatedShippingDays` and `createdAt`; `dataLevel: meta` means Shopee showed only the product's title and main image (some markets), with price, rating and shop still included. `price` is what Shopee shows a signed-out shopper, which can be a promotional or new-customer price (see `labels`). Not available: stock, units sold, rating counts and reviews (Shopee does not publish them on the pages these endpoints read). One unit per call.",
+    "params": [
+      {
+        "name": "url",
+        "type": "string",
+        "required": false,
+        "description": "A Shopee product link, e.g. https://shopee.sg/Beats-iPhone-17-Case-i.442800909.40270108836 or https://shopee.co.id/product/1426163997/40581375446."
+      },
+      {
+        "name": "shop_id",
+        "type": "string",
+        "required": false,
+        "description": "Instead of `url`: the shop id (the first number after '-i.' in a product link)."
+      },
+      {
+        "name": "item_id",
+        "type": "string",
+        "required": false,
+        "description": "Instead of `url`: the item id (the second number after '-i.')."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "required": false,
+        "description": "With `shop_id` + `item_id`: Shopee market: 'sg' (shopee.sg), 'id' (shopee.co.id), 'my' (shopee.com.my), 'th' (shopee.co.th), 'vn' (shopee.vn), 'ph' (shopee.ph), 'tw' (shopee.tw), 'br' (shopee.com.br). Default 'sg'. Prices are in that market's currency."
+      }
+    ]
+  },
+  {
+    "name": "taobao_search",
+    "title": "Scrape Taobao / Tmall keyword or category listings",
+    "category": "E-commerce",
+    "path": "/marketplace/taobao-search",
+    "fixed": {},
+    "description": "Returns the products Taobao lists for a keyword `q` (or a `category`) as JSON: `products` (`position`, `itemId`, `title`, `url`, `image`, `price` in yuan with `currency` CNY, `priceLabel` (Taobao's price tag, e.g. 优惠价), `localPrices` (the same price in the storefront's currency, HKD and TWD), `shopId`, `shopName`, `descriptionMatchScore`, `freeShipping`, `categoryId`, `rootCategoryId`, `sellingPoints`, `reviewHighlights`), `totalResults` (how many listings Taobao reports), and `filterOptions` (brand and property facets; pass an option's `filter` value back as `filter`). Sort by relevance, sales or price and filter by a yuan price range (products whose listed price falls outside it are left out and counted in `droppedOutsidePriceRange`). Taobao shows signed-out visitors only the first 20 products of a list, so one call returns up to 20 (narrow with price ranges and filters to reach more). When Taobao has no list for the keyword, the call answers with the list of the closest keyword Taobao itself suggests and says so: `keywordSubstituted` true and `matchedKeyword`. Text comes in Chinese as sellers write it. Companion to `/marketplace/taobao-product`. One unit per call.",
+    "params": [
+      {
+        "name": "q",
+        "type": "string",
+        "required": false,
+        "description": "Keyword, in Chinese or English, e.g. '手机壳', '连衣裙', 'phone case' (Chinese keywords match far more listings). A Taobao search or list link works too. Give `q` or `category`."
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "required": false,
+        "description": "A Taobao category id, e.g. '50005050', or a category list link (https://www.taobao.com/list/category/50005050.htm). Returns the category's best sellers; sort and filters apply to keyword searches only."
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "required": false,
+        "description": "Order: relevance, sales, price_asc, price_desc (price in yuan).",
+        "default": "relevance"
+      },
+      {
+        "name": "price_min",
+        "type": "number",
+        "required": false,
+        "description": "Only products at or above this many yuan (CNY)."
+      },
+      {
+        "name": "price_max",
+        "type": "number",
+        "required": false,
+        "description": "Only products at or below this many yuan (CNY)."
+      },
+      {
+        "name": "filter",
+        "type": "string",
+        "required": false,
+        "description": "One brand or property filter, as the `filter` value of an option in `filterOptions` of an earlier answer, e.g. '20000-88634403'."
+      }
+    ]
+  },
+  {
+    "name": "taobao_product",
+    "title": "Scrape one Taobao / Tmall item",
+    "category": "E-commerce",
+    "path": "/marketplace/taobao-product",
+    "fixed": {},
+    "description": "Returns one Taobao or Tmall item (by `item_id` or `url`) as JSON: `itemId`, `url`, `platform` (taobao / tmall), `title` (`titleTruncated` when Taobao shortens it, as it does for Tmall items), `price`, `originalPrice` and `priceMax` (for a price range) in yuan with `currency` CNY, `image`, `location` (ships from), `categoryId`, `rootCategoryId`, `categoryPath`, `freeShipping`, `paymentMethods`, `sellableLanguages`, `rating` (positive / neutral / negative split and counts; Taobao items only, Tmall does not publish it), `latestReview` (`rating`, `content`, `date`, `variant`, `hasMedia`, `followUps`; no reviewer identity, so no review photo or video URLs) and `shop` (`shopId`, `name`, `url`, `logo`, `sellerType` B = Tmall / C = Taobao, `creditLevel`, `openedAt`, `itemCount`, `scores` for description, service and delivery). This is what Taobao shows signed-out visitors: variants (SKUs), stock and monthly sales need a Taobao login and are not included. Companion to `/marketplace/taobao-search`. One unit per call.",
+    "params": [
+      {
+        "name": "item_id",
+        "type": "string",
+        "required": false,
+        "description": "Numeric Taobao or Tmall item id, e.g. '765833709683' (the `id` in item.taobao.com/item.htm?id=...)."
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "required": false,
+        "description": "Taobao or Tmall item link, e.g. 'https://item.taobao.com/item.htm?id=765833709683' or 'https://detail.tmall.com/item.htm?id=1081364414020' (world.taobao.com, mobile and overseas item links work too). Either item_id or url is required."
       }
     ]
   },
@@ -4276,6 +4936,110 @@ export const PLUGINS: PluginInfo[] = [
     ]
   },
   {
+    "name": "upwork_jobs",
+    "title": "Scrape Upwork job posts",
+    "category": "Jobs",
+    "path": "/jobs/upwork",
+    "fixed": {},
+    "description": "Searches Upwork jobs for `q` (or lists the newest jobs without it) and returns `jobs`: `id`, `ciphertext`, `url`, `title`, `description` (full text), `publishedAt`, `createdAt`, `renewedAt`, `jobType` (hourly / fixed), `hourlyMin`, `hourlyMax`, `budget` (fixed price), `currency`, `experienceLevel`, `duration`, `workload`, `skills`, plus `totalResults` and `nextStart`. Filter with `job_type`, `experience`, `budget`, `hourly_rate`, `client_hires`, `workload`, `duration`, `location`, `category`, `contract_to_hire`; sort by `relevance` or `recency`. `details=true` adds, per job: `proposals`, `interviewing`, `invitesSent`, `hired`, `positionsToHire`, `lastClientActivity`, `category`, `qualifications` and `client` (`country`, `city`, `timezone`, `paymentVerified`, `rating`, `reviews`, `totalSpent`, `hires`, `memberSince`; no client names). A private listing is marked `privateListing: true` without those fields. Upwork shows signed-out visitors the first 5000 results of a search. Billing: one unit per results page of up to 50 jobs, plus one per job page fetched with `details=true` (`callUnits`).",
+    "params": [
+      {
+        "name": "q",
+        "type": "string",
+        "required": false,
+        "description": "What to search for, e.g. 'python' or 'logo design'. Leave empty with sort=recency for the newest jobs."
+      },
+      {
+        "name": "job_type",
+        "type": "string",
+        "required": false,
+        "description": "hourly or fixed."
+      },
+      {
+        "name": "experience",
+        "type": "string",
+        "required": false,
+        "description": "Experience level, comma list of: entry, intermediate, expert."
+      },
+      {
+        "name": "budget",
+        "type": "string",
+        "required": false,
+        "description": "Fixed-price budget in USD, comma list of ranges like '100-499', '1000-4999' or '5000-'."
+      },
+      {
+        "name": "hourly_rate",
+        "type": "string",
+        "required": false,
+        "description": "Hourly rate in USD, e.g. '25-50' or '40-'."
+      },
+      {
+        "name": "client_hires",
+        "type": "string",
+        "required": false,
+        "description": "Client's past hires, comma list of: 0, 1-9, 10-."
+      },
+      {
+        "name": "workload",
+        "type": "string",
+        "required": false,
+        "description": "part_time (under 30 hrs/week) or full_time."
+      },
+      {
+        "name": "duration",
+        "type": "string",
+        "required": false,
+        "description": "Project length, comma list of: week, month, semester, ongoing (under a month, 1-3 months, 3-6 months, over 6 months)."
+      },
+      {
+        "name": "location",
+        "type": "string",
+        "required": false,
+        "description": "Client location, comma list of regions or countries as Upwork names them, e.g. 'Europe' or 'United States'."
+      },
+      {
+        "name": "category",
+        "type": "string",
+        "required": false,
+        "description": "Job category, comma list of names (Accounting & Consulting, Admin Support, Customer Service, Data Science & Analytics, Design & Creative, Engineering & Architecture, It & Networking, Legal, Sales & Marketing, Translation, Web, Mobile & Software Dev, Writing) or category ids."
+      },
+      {
+        "name": "contract_to_hire",
+        "type": "boolean",
+        "required": false,
+        "description": "Only contract-to-hire jobs.",
+        "default": false
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "required": false,
+        "description": "relevance (default with q) or recency (default without q)."
+      },
+      {
+        "name": "start",
+        "type": "integer",
+        "required": false,
+        "description": "0-based position of the first job, 0-4999 (Upwork shows signed-out visitors the first 5000 results); `nextStart` continues.",
+        "default": 0
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Jobs to collect, 1-5000. Each results page (up to 50 jobs) is billed one unit.",
+        "default": 50
+      },
+      {
+        "name": "details",
+        "type": "boolean",
+        "required": false,
+        "description": "Add each job's page: proposals, client stats, qualifications. Up to 100 jobs; one more unit per job page fetched.",
+        "default": false
+      }
+    ]
+  },
+  {
     "name": "trustpilot_reviews",
     "title": "Scrape Trustpilot company reviews",
     "category": "Reviews & Companies",
@@ -5187,7 +5951,7 @@ export const PLUGINS: PluginInfo[] = [
         "name": "format",
         "type": "string",
         "required": false,
-        "description": "Output shape: segments, text. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
+        "description": "Output shape: text, segments. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
         "default": "segments"
       },
       {
