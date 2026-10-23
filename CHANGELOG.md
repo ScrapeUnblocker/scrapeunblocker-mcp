@@ -2,6 +2,18 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.7.0
+
+- `fetch_markdown` and `search_and_read` get the Markdown from the API
+  (`/getPageSource` with `markdown=true` and `main_content_only`) instead of
+  converting HTML here. The API converts the page as served, so text split
+  across inline tags stays whole: a price `$<span>19</span><span>.99</span>`
+  reads `$19.99`, where converting the API's prettified HTML gave `$ 19 .99`.
+  Tool names, inputs and annotations are unchanged.
+- The page header is now just `URL: ...`; the page's own heading opens the
+  Markdown, since the API sends no page title.
+- `turndown`, `turndown-plugin-gfm` and `linkedom` are no longer dependencies.
+
 ## 0.6.0
 
 - Browser `steps` moved from `fetch_html` to a new tool, `browse_page`.

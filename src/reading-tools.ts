@@ -2,15 +2,19 @@
  * Tools that read pages as Markdown: `fetch_markdown` (one page) and
  * `search_and_read` (a Google search plus its top results, in one call).
  *
+ * The API returns the Markdown (`/getPageSource` with `markdown=true`). It
+ * converts the page as served; a conversion here could only start from the
+ * prettified HTML the API returns, whose added whitespace splits inline runs
+ * (a price `$<span>19</span><span>.99</span>` read "$ 19 .99").
+ *
  * This file is identical in scrapeunblocker-mcp (src/reading-tools.ts) and
  * scrapeunblocker-mcp-remote (api/_lib/readingTools.ts); change both together.
- * Each server passes in how it fetches pages and searches, so the file carries
- * no auth or transport.
+ * Each server passes in how it calls the API, so the file carries no auth or
+ * transport.
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { capText, htmlToMarkdown } from "./markdown.js";
 
 /** A page read alone; MCP clients cut tool results around this size anyway. */
 const PAGE_MAX_CHARS = 100_000;
@@ -23,7 +27,12 @@ const SEARCH_PAGE_DEADLINE_MS = 120_000;
 
 type ToolResult = { content: { type: "text"; text: string }[]; isError?: boolean };
 
-export interface FetchOptions {
+/** `/getPageSource` query params; undefined ones are left out of the request. */
+export type PageSourceParams = Record<string, string | number | boolean | undefined>;
+
+interface ReadOptions {
+  /** `main_content_only`: drop navigation, site header, footer and sidebars. */
+  mainContentOnly: boolean;
   proxyCountry?: string;
   method?: "css" | "js";
   value?: string;
@@ -31,11 +40,14 @@ export interface FetchOptions {
 }
 
 export interface ReadingToolsOptions {
-  /** The rendered HTML of `url`; throws when the API call fails. */
-  fetchHtml: (url: string, options: FetchOptions) => Promise<string>;
+  /**
+   * POST `/getPageSource` with `params` and return the body; throws when the
+   * call fails. Only reads go through it, so retrying is safe.
+   */
+  getPageSource: (params: PageSourceParams) => Promise<string>;
   /** The `/serpApi` response for `keyword`. */
   serp: (keyword: string, options: { proxyCountry?: string }) => Promise<unknown>;
-  /** The tool result for a failed `fetchHtml` (e.g. the target's own 404). */
+  /** The tool result for a failed `getPageSource` (e.g. the target's own 404). */
   fetchError: (url: string, err: unknown) => ToolResult;
   errorText: (err: unknown) => string;
   /** A result to answer with instead of calling the API (e.g. no account), or null. */
@@ -52,10 +64,27 @@ function text(body: string, isError = false): ToolResult {
   return isError ? { content: [{ type: "text", text: body }], isError } : { content: [{ type: "text", text: body }] };
 }
 
-function pageMarkdown(url: string, html: string, mainOnly: boolean, max: number): string {
-  const page = htmlToMarkdown(html, url, { mainOnly });
-  const head = page.title ? `URL: ${url}\nTitle: ${page.title}` : `URL: ${url}`;
-  return capText(`${head}\n\n${page.markdown}`, max, "Use fetch_html for the whole page.");
+/** The `/getPageSource` query that returns `url` as Markdown. */
+function markdownParams(url: string, options: ReadOptions): PageSourceParams {
+  return {
+    url,
+    markdown: true,
+    main_content_only: options.mainContentOnly,
+    proxy_country: options.proxyCountry,
+    method: options.method,
+    value: options.value,
+    time_sleep: options.timeSleep,
+  };
+}
+
+/** Cut `text` to `max` characters, saying so, so the agent knows it is partial. */
+function capText(text: string, max: number, hint: string): string {
+  if (text.length <= max) return text;
+  return `${text.slice(0, max)}\n\n[Cut at ${max} of ${text.length} characters. ${hint}]`;
+}
+
+function pageText(url: string, markdown: string, max: number): string {
+  return capText(`URL: ${url}\n\n${markdown.trim()}`, max, "Use fetch_html for the whole page.");
 }
 
 function organicResults(serp: unknown): OrganicResult[] {
@@ -132,13 +161,16 @@ export function registerReadingTools(server: McpServer, options: ReadingToolsOpt
       const blocked = options.blocked?.();
       if (blocked) return blocked;
       try {
-        const html = await options.fetchHtml(args.url, {
-          proxyCountry: args.proxy_country,
-          method: args.wait_method,
-          value: args.wait_value,
-          timeSleep: args.sleep_seconds,
-        });
-        return text(pageMarkdown(args.url, html, args.main_content_only ?? true, PAGE_MAX_CHARS));
+        const markdown = await options.getPageSource(
+          markdownParams(args.url, {
+            mainContentOnly: args.main_content_only ?? true,
+            proxyCountry: args.proxy_country,
+            method: args.wait_method,
+            value: args.wait_value,
+            timeSleep: args.sleep_seconds,
+          }),
+        );
+        return text(pageText(args.url, markdown, PAGE_MAX_CHARS));
       } catch (err) {
         return options.fetchError(args.url, err);
       }
@@ -191,7 +223,10 @@ export function registerReadingTools(server: McpServer, options: ReadingToolsOpt
       const toRead = organic.slice(0, args.results ?? SEARCH_DEFAULT_RESULTS);
       const pages = await Promise.allSettled(
         toRead.map((r) =>
-          withDeadline(options.fetchHtml(r.url, { proxyCountry: args.proxy_country }), SEARCH_PAGE_DEADLINE_MS),
+          withDeadline(
+            options.getPageSource(markdownParams(r.url, { mainContentOnly: true, proxyCountry: args.proxy_country })),
+            SEARCH_PAGE_DEADLINE_MS,
+          ),
         ),
       );
 
@@ -204,7 +239,7 @@ export function registerReadingTools(server: McpServer, options: ReadingToolsOpt
         const page = pages[i];
         const body =
           page.status === "fulfilled"
-            ? pageMarkdown(r.url, page.value, true, SEARCH_PAGE_MAX_CHARS)
+            ? pageText(r.url, page.value, SEARCH_PAGE_MAX_CHARS)
             : `URL: ${r.url}\n\nCould not read this page: ${options.errorText(page.reason)}\nSnippet: ${r.description}`;
         parts.push(`## ${i + 1}. ${r.title}\n\n${body}`);
       });

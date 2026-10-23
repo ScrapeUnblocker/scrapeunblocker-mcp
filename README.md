@@ -156,6 +156,7 @@ SCRAPEUNBLOCKER_KEY=your_api_key_here npx -y scrapeunblocker-mcp
 npm install
 npm run build      # bundles to dist/ with tsup
 npm run typecheck
+npm test           # builds, then runs the tools against a local stand-in API
 SCRAPEUNBLOCKER_KEY=... node dist/index.js   # run the server
 ```
 

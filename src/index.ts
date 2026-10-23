@@ -12,11 +12,11 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { APIError, ScrapeUnblockerClient } from "scrapeunblocker";
+import { APIError, ScrapeUnblockerClient, errorForStatus } from "scrapeunblocker";
 import { registerPluginTools } from "./plugin-tools.js";
-import { registerReadingTools } from "./reading-tools.js";
+import { registerReadingTools, type PageSourceParams } from "./reading-tools.js";
 
-const VERSION = "0.6.0";
+const VERSION = "0.7.0";
 
 /** Default API host, matching the SDK. */
 const DEFAULT_BASE_URL = "https://api.scrapeunblocker.com";
@@ -135,6 +135,24 @@ interface RawResponse {
   originStatus: string | null;
 }
 
+/** The `/getPageSource` URL for `params`, leaving out unset ones. */
+function pageSourceUrl(params: QueryParams): string {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null) continue;
+    query.set(key, String(value));
+  }
+  return `${resolveBaseUrl()}/getPageSource?${query.toString()}`;
+}
+
+function requestHeaders(apiKey: string): Record<string, string> {
+  return {
+    [API_KEY_HEADER]: apiKey,
+    "User-Agent": `scrapeunblocker-mcp/${VERSION}`,
+    Accept: "*/*",
+  };
+}
+
 /**
  * A thin, raw POST to `/getPageSource` for the two capabilities the typed SDK
  * methods do not model: interactive browser `steps` (which return HTML but can
@@ -146,19 +164,9 @@ interface RawResponse {
 async function getPageSourceRaw(params: QueryParams): Promise<RawResponse> {
   const apiKey = resolveApiKey();
   if (!apiKey) throw new Error(MISSING_KEY_MESSAGE);
-  const query = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value === undefined || value === null) continue;
-    query.set(key, String(value));
-  }
-  const url = `${resolveBaseUrl()}/getPageSource?${query.toString()}`;
-  const response = await fetch(url, {
+  const response = await fetch(pageSourceUrl(params), {
     method: "POST",
-    headers: {
-      [API_KEY_HEADER]: apiKey,
-      "User-Agent": `scrapeunblocker-mcp/${VERSION}`,
-      Accept: "*/*",
-    },
+    headers: requestHeaders(apiKey),
   });
   const text = await response.text();
   return {
@@ -167,6 +175,54 @@ async function getPageSourceRaw(params: QueryParams): Promise<RawResponse> {
     text,
     originStatus: response.headers.get("x-origin-status"),
   };
+}
+
+/** The SDK client's defaults, so a page read as Markdown gets fetch_html's patience. */
+const READ_TIMEOUT_MS = 180_000;
+const READ_RETRIES = 2;
+/** Busy (429) and gateway (502-504) answers: a later attempt can succeed. */
+const RETRYABLE = new Set([429, 502, 503, 504]);
+
+function backoff(attempt: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, Math.min(500 * 2 ** attempt, 8_000)));
+}
+
+/**
+ * POST `/getPageSource` for a read (fetch_markdown, search_and_read) and
+ * return the body. Transport and errors follow the SDK client: busy and
+ * gateway answers and dropped connections are retried, and a failed call
+ * throws the SDK's typed error, so a target's own 404/410 reaches
+ * `errorResult` as the APIError it handles.
+ */
+async function readPageSource(params: PageSourceParams): Promise<string> {
+  const apiKey = resolveApiKey();
+  if (!apiKey) throw new Error(MISSING_KEY_MESSAGE);
+  const url = pageSourceUrl(params);
+  for (let attempt = 0; ; attempt++) {
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers: requestHeaders(apiKey),
+        signal: AbortSignal.timeout(READ_TIMEOUT_MS),
+      });
+    } catch (err) {
+      if (err instanceof Error && err.name === "TimeoutError") {
+        throw new Error(`No answer from ScrapeUnblocker within ${READ_TIMEOUT_MS / 1000} s.`);
+      }
+      if (attempt >= READ_RETRIES) throw new Error(`Could not reach ScrapeUnblocker: ${errorText(err)}`);
+      await backoff(attempt);
+      continue;
+    }
+    if (RETRYABLE.has(response.status) && attempt < READ_RETRIES) {
+      await response.body?.cancel();
+      await backoff(attempt);
+      continue;
+    }
+    const body = await response.text();
+    if (!response.ok) throw errorForStatus(response.status, body, response.headers);
+    return body;
+  }
 }
 
 const server = new McpServer({
@@ -646,7 +702,7 @@ server.registerTool(
 // Tools: fetch_markdown, search_and_read
 // ---------------------------------------------------------------------------
 registerReadingTools(server, {
-  fetchHtml: (url, options) => client().getPageSource(url, options),
+  getPageSource: readPageSource,
   serp: (keyword, options) => client().serp(keyword, options),
   fetchError: errorResult,
   errorText,
