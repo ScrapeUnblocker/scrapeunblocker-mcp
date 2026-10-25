@@ -2,6 +2,13 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.8.1
+
+- Skyscanner flights, hotels and car hire plugins: every input now has a
+  description in `list_plugins` / `run_plugin` (origin and destination,
+  entity IDs, dates, passengers, `max_polls`, `max_results` and the rest).
+  Tool names and inputs are unchanged.
+
 ## 0.8.0
 
 - 16 new site plugins in `list_plugins` / `run_plugin`: `google_hotels`,

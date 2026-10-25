@@ -40,96 +40,96 @@ export const PLUGINS: PluginInfo[] = [
         "name": "origin",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Origin airport or city name, e.g. London. Give this or `origin_entity`."
       },
       {
         "name": "dest",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Destination airport or city name. Give this or `dest_entity`."
       },
       {
         "name": "origin_entity",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Skyscanner entity ID of the origin; skips the name lookup and overrides `origin`."
       },
       {
         "name": "dest_entity",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Skyscanner entity ID of the destination; skips the name lookup and overrides `dest`."
       },
       {
         "name": "origin_iata",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Origin IATA code, e.g. LHR. Optional; resolved from the origin when omitted."
       },
       {
         "name": "dest_iata",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Destination IATA code. Optional; resolved from the destination when omitted."
       },
       {
         "name": "depart_date",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Departure date, YYYY-MM-DD. Required."
       },
       {
         "name": "return_date",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Return date, YYYY-MM-DD. Omit for a one-way search."
       },
       {
         "name": "adults",
         "type": "integer",
         "required": false,
-        "description": "",
+        "description": "Passengers, 1-9.",
         "default": 1
       },
       {
         "name": "cabin",
         "type": "string",
         "required": false,
-        "description": "",
+        "description": "Cabin class: economy, premium_economy, business or first.",
         "default": "economy"
       },
       {
         "name": "currency",
         "type": "string",
         "required": false,
-        "description": "",
+        "description": "Price currency, e.g. GBP, EUR, USD.",
         "default": "GBP"
       },
       {
         "name": "market",
         "type": "string",
         "required": false,
-        "description": "",
+        "description": "Skyscanner market (country code), e.g. UK, US, ES.",
         "default": "UK"
       },
       {
         "name": "locale",
         "type": "string",
         "required": false,
-        "description": "",
+        "description": "Result language, e.g. en-GB, es-ES.",
         "default": "en-GB"
       },
       {
         "name": "proxy_country",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Two-letter ISO country code (e.g. `de`, `us`) of the exit IP, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries."
       },
       {
         "name": "max_polls",
         "type": "integer",
         "required": false,
-        "description": "",
+        "description": "How many times to poll Skyscanner for more results before answering, 1-20. More polls give fuller results and a slower call.",
         "default": 8
       }
     ]
@@ -146,79 +146,79 @@ export const PLUGINS: PluginInfo[] = [
         "name": "destination",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "City or place name, e.g. London. Give this or `destination_entity`."
       },
       {
         "name": "destination_entity",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Skyscanner entity ID of the destination; skips the name lookup and overrides `destination`."
       },
       {
         "name": "checkin",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Check-in date, YYYY-MM-DD. Required."
       },
       {
         "name": "checkout",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Check-out date, YYYY-MM-DD. Required."
       },
       {
         "name": "adults",
         "type": "integer",
         "required": false,
-        "description": "",
+        "description": "Guests, 1-16.",
         "default": 2
       },
       {
         "name": "rooms",
         "type": "integer",
         "required": false,
-        "description": "",
+        "description": "Rooms, 1-8.",
         "default": 1
       },
       {
         "name": "currency",
         "type": "string",
         "required": false,
-        "description": "",
+        "description": "Price currency, e.g. GBP, EUR, USD.",
         "default": "GBP"
       },
       {
         "name": "market",
         "type": "string",
         "required": false,
-        "description": "",
+        "description": "Skyscanner market (country code), e.g. UK, US, ES.",
         "default": "UK"
       },
       {
         "name": "locale",
         "type": "string",
         "required": false,
-        "description": "",
+        "description": "Result language, e.g. en-GB, es-ES.",
         "default": "en-GB"
       },
       {
         "name": "proxy_country",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Two-letter ISO country code (e.g. `de`, `us`) of the exit IP, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries."
       },
       {
         "name": "max_polls",
         "type": "integer",
         "required": false,
-        "description": "",
+        "description": "How many times to poll Skyscanner for more results before answering, 1-20. More polls give fuller results and a slower call.",
         "default": 8
       },
       {
         "name": "max_results",
         "type": "integer",
         "required": false,
-        "description": "",
+        "description": "How many hotels to return, 1-300. Results come in pages of about 35, so more results take longer.",
         "default": 30
       }
     ]
@@ -241,7 +241,7 @@ export const PLUGINS: PluginInfo[] = [
         "name": "host",
         "type": "string",
         "required": false,
-        "description": "",
+        "description": "Skyscanner site the search runs on, e.g. www.skyscanner.es. Ignored when `url` is given.",
         "default": "www.skyscanner.net"
       },
       {
@@ -282,7 +282,7 @@ export const PLUGINS: PluginInfo[] = [
         "name": "dropoff_entity",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Skyscanner dropoff entity ID; overrides `dropoff`. Defaults to the pickup location."
       },
       {
         "name": "pickup",
@@ -294,7 +294,7 @@ export const PLUGINS: PluginInfo[] = [
         "name": "dropoff",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Dropoff place name. Defaults to the pickup location."
       },
       {
         "name": "pickup_datetime",
@@ -312,33 +312,33 @@ export const PLUGINS: PluginInfo[] = [
         "name": "proxy_country",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Two-letter ISO country code (e.g. `de`, `us`) of the exit IP, so the site serves that country's prices, language and content. Omit it and the country is picked for you. An unsupported code answers 400 with the list of available countries."
       },
       {
         "name": "warmup_url",
         "type": "string",
         "required": false,
-        "description": ""
+        "description": "Skyscanner page opened before the quotes are fetched. Defaults to one derived from the search; rarely needed."
       },
       {
         "name": "max_polls",
         "type": "integer",
         "required": false,
-        "description": "",
+        "description": "How many times to poll Skyscanner for more results before answering, 1-20. More polls give fuller results and a slower call.",
         "default": 8
       },
       {
         "name": "poll_interval",
         "type": "number",
         "required": false,
-        "description": "",
+        "description": "Seconds between polls, 0-10.",
         "default": 2.0
       },
       {
         "name": "settle",
         "type": "number",
         "required": false,
-        "description": "",
+        "description": "Seconds to stay on the warm-up page before the first fetch, 0-20.",
         "default": 5.0
       }
     ]
