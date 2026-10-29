@@ -25,7 +25,7 @@ export interface PluginInfo {
 }
 
 /** Category names in display order. */
-export const CATEGORIES: string[] = ["Travel", "Google", "Search engines", "E-commerce", "Classifieds & Resale", "Groceries", "Real estate", "Vehicles", "Jobs", "Reviews & Companies", "Local & Maps", "Apps", "Video & Music", "SEO & Ads"];
+export const CATEGORIES: string[] = ["Travel", "Google", "AI", "Search engines", "E-commerce", "Classifieds & Resale", "Groceries", "Real estate", "Vehicles", "Jobs", "Reviews & Companies", "Local & Maps", "Apps", "Video & Music", "SEO & Ads"];
 
 export const PLUGINS: PluginInfo[] = [
   {
@@ -1416,6 +1416,102 @@ export const PLUGINS: PluginInfo[] = [
     ]
   },
   {
+    "name": "google_ai_mode",
+    "title": "Scrape a Google AI Mode answer",
+    "category": "Google",
+    "path": "/search/google-ai-mode",
+    "fixed": {},
+    "description": "Asks Google AI Mode (the `udm=50` AI Mode tab, not the AI Overview on a results page) the question `q` and returns its full answer as JSON: `answer.text` (plain text), `answer.markdown` and `answer.blocks` (paragraphs, headings, lists, tables and code, in order), `references` (the pages the answer cites: `title`, `url`, `domain`, `source`, `snippet`), `links` (links written into the answer text) and `followUps` (the follow-up questions Google closes the answer with, if any). Set `proxy_country` to ask from a market - the Google market (`gl`) follows it - and `hl` for the answer's language. Answers differ between identical requests, as they do for a person.",
+    "params": [
+      {
+        "name": "q",
+        "type": "string",
+        "required": true,
+        "description": "The question to ask Google AI Mode, e.g. 'how to learn python fast'."
+      },
+      {
+        "name": "proxy_country",
+        "type": "string",
+        "required": false,
+        "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). The Google market (`gl`) follows it unless `gl` is set."
+      },
+      {
+        "name": "gl",
+        "type": "string",
+        "required": false,
+        "description": "Optional Google market override (ISO-2, e.g. 'us', 'de'). Default: `proxy_country`, else 'us'."
+      },
+      {
+        "name": "hl",
+        "type": "string",
+        "required": false,
+        "description": "Language Google answers in, e.g. 'en', 'de', 'pt-BR'. Default 'en'."
+      }
+    ]
+  },
+  {
+    "name": "google_lens",
+    "title": "Search Google Lens with an image URL",
+    "category": "Google",
+    "path": "/images/google-lens",
+    "fixed": {},
+    "description": "Runs a Google Lens search for the image at `url` and returns its visual matches as JSON (usually ~60). Every match carries `title`, `url` (the page the image is on), `domain`, `source` (site name), `imageUrl` (the matching image), `thumbnailUrl`, `width`, `height` and `position`; product matches add `price` and `currency` (and `product` details) when Google has them, and `priceText`, `rating` and `reviews` as the tile shows them. `relatedSearches` lists what Lens recognised in the image (e.g. 'Eiffel Tower', with its Knowledge Graph id) and `aiOverview` is Google's own description of the image when it is ready in time (else null). Shopping matches follow the country the request comes from - set `proxy_country` for a market (a US request is served from a European exit, where Google loads Lens matches; `proxyCountry` in the response says which).",
+    "params": [
+      {
+        "name": "url",
+        "type": "string",
+        "required": true,
+        "description": "Public http(s) URL of the image to search with, e.g. a product photo. Google fetches the image itself."
+      },
+      {
+        "name": "proxy_country",
+        "type": "string",
+        "required": false,
+        "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Shopping matches and prices follow the country Google sees the request from."
+      },
+      {
+        "name": "gl",
+        "type": "string",
+        "required": false,
+        "description": "Optional Google market override (ISO-2). Default: `proxy_country`, else 'us'."
+      },
+      {
+        "name": "hl",
+        "type": "string",
+        "required": false,
+        "description": "Google UI language, e.g. 'en', 'de'. Default 'en'."
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Optional cap on the visual matches returned (1-100; default: all, usually ~60)."
+      }
+    ]
+  },
+  {
+    "name": "gemini",
+    "title": "Ask Google Gemini and get its answer and cited sources",
+    "category": "AI",
+    "path": "/ai/gemini",
+    "fixed": {},
+    "description": "Asks Google Gemini (gemini.google.com, signed out) one question and returns `answer` (plain text) and `answerMarkdown`, `citations` (pages cited inline: `position`, `title`, `url`, `domain`, `siteName`, `description`, `citedText` - the answer sentences that page backs - and `firstCitedAt`, the character offset of the first of them), `sources` (pages Gemini consulted when it searched the web: `position`, `title`, `url`, `domain`), `webSearch` (whether it searched the web), `followUpPrompts` (`label`, `prompt`), `richBlocks` (cards Gemini drew that have no text, e.g. a sports score or image strip, left out of the answer), `model` (the model label the app shows), `location` and `locationCountry` (where Gemini placed the visitor), `complete` and `conversationId`. `country` asks from that country. Answers vary between identical calls, as they do for people. One unit per call.",
+    "params": [
+      {
+        "name": "prompt",
+        "type": "string",
+        "required": true,
+        "description": "The question to ask Gemini, as a user would type it, e.g. 'best CRM for small business' (max 4000 characters). Each call starts a new conversation."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "required": false,
+        "description": "Two-letter country code to ask from, e.g. US, GB, DE. Gemini answers for where it locates the visitor (local results, currency, language defaults); `locationCountry` in the answer says where it placed this call. Leave blank for any European location."
+      }
+    ]
+  },
+  {
     "name": "bing_search",
     "title": "Search Bing",
     "category": "Search engines",
@@ -1828,6 +1924,111 @@ export const PLUGINS: PluginInfo[] = [
     ]
   },
   {
+    "name": "amazon_offers",
+    "title": "Scrape every offer (all sellers) for an Amazon product",
+    "category": "E-commerce",
+    "path": "/marketplace/amazon-offers",
+    "fixed": {},
+    "description": "Returns the offers Amazon lists for a product under \"All buying options\", as JSON. Each offer has the seller (`sellerName`, `sellerId`, `sellerUrl`, `sellerRating`, `sellerRatingCount`, `sellerPositivePercent`), `price` + `currency`, `listPrice` and `savingsPercent`, `shippingPrice` and `totalPrice`, `condition` (as Amazon words it) with `conditionType` (new, used, collectible, refurbished) and the seller's `conditionNote`, `delivery` / `deliveryDate`, `alternativeDelivery` (the faster or Prime-member option Amazon also offers), `shipsFrom`, `soldByAmazon`, `fulfilledByAmazon`, `prime`, the `offerId` and a `buyBoxWinner` flag. The response also carries the product `title`, `rating`, `reviewCount`, `image` and `totalOffers`. Page 1 starts with the Buy Box (featured) offer, also returned as `buyBox`; Amazon shows it whatever filter is set. Amazon lists 10 other offers per page: follow `nextPage`, or read up to 5 pages in one call with `pages`. Filter with `condition`, `free_shipping` and `prime`. `shippingPrice` is 0 for free delivery and null when Amazon shows no delivery promise for the location. `proxy_country` defaults to the marketplace's home country so prices and delivery are the ones a local shopper sees; the proxy that served the request is reported as `exitCountry` and `exitProvider`.",
+    "params": [
+      {
+        "name": "asin",
+        "type": "string",
+        "required": false,
+        "description": "Amazon product id (10-char ASIN, e.g. 'B07VGRJDFY'; books use their ISBN-10). Give either `asin` (with `marketplace`) or a product `url`."
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "required": false,
+        "description": "Full Amazon product url, e.g. 'https://www.amazon.de/dp/1847941834'. The ASIN and marketplace are read from it."
+      },
+      {
+        "name": "marketplace",
+        "type": "string",
+        "required": false,
+        "description": "Regional Amazon site whose offers to list. Prices, sellers and delivery differ per marketplace. One of: amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.nl, amazon.se, amazon.pl, amazon.com.be, amazon.com.tr, amazon.ca, amazon.com.mx, amazon.com.br, amazon.co.jp, amazon.in, amazon.ae, amazon.sa, amazon.sg, amazon.com.au.",
+        "default": "amazon.com"
+      },
+      {
+        "name": "condition",
+        "type": "string",
+        "required": false,
+        "description": "Only offers in this condition: all, new, used, used_like_new, used_very_good, used_good, used_acceptable. Default 'all'.",
+        "default": "all"
+      },
+      {
+        "name": "free_shipping",
+        "type": "boolean",
+        "required": false,
+        "description": "Only offers with free delivery.",
+        "default": false
+      },
+      {
+        "name": "prime",
+        "type": "boolean",
+        "required": false,
+        "description": "Only Prime-eligible offers.",
+        "default": false
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "required": false,
+        "description": "1-based offers page to start at. Amazon lists 10 offers per page (page 1 also carries the Buy Box offer and the product header).",
+        "default": 1
+      },
+      {
+        "name": "pages",
+        "type": "integer",
+        "required": false,
+        "description": "How many consecutive pages to read in this call (1-5). Reading stops early at the last page. Each page delivered is billed as one request.",
+        "default": 1
+      },
+      {
+        "name": "proxy_country",
+        "type": "string",
+        "required": false,
+        "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Defaults to the marketplace's home country, so prices, shipping costs and delivery dates are the ones a local shopper sees."
+      }
+    ]
+  },
+  {
+    "name": "amazon_seller",
+    "title": "Scrape an Amazon seller profile",
+    "category": "E-commerce",
+    "path": "/marketplace/amazon-seller",
+    "fixed": {},
+    "description": "Returns an Amazon third-party seller's public profile as JSON: `name`, `logo`, `storefrontUrl`, the headline `rating`, `ratingCount` and `positivePercent` Amazon shows (the last 12 months, or lifetime for a seller with few recent ratings; `ratingPeriod` says which), and `feedbackSummary` for `30d`, `90d`, `12m` and `lifetime` - each with the average `rating`, `ratingCount`, `positivePercent` / `neutralPercent` / `negativePercent` (4-5, 3 and 1-2 stars), the matching counts and the 5..1-star histogram. Also `about` (the seller's own description), `businessName`, `businessAddress` (+ `businessAddressLines`), `businessDetails` (every row of Amazon's \"Detailed Seller Information\", e.g. business type, trade register and VAT number where the marketplace shows them), `contactUrl` and `recentFeedback` (each with `rating`, `text`, `author`, `date`, `struckThrough` and `amazonMessage` when Amazon took responsibility for the order). Identify the seller with `seller_id` (plus `marketplace`), e.g. the `sellerId` of an offer from `/marketplace/amazon-offers`, or with any Amazon `url` naming the seller. Ratings are per marketplace. Amazon's own retail sellers show no ratings; those fields are null.",
+    "params": [
+      {
+        "name": "seller_id",
+        "type": "string",
+        "required": false,
+        "description": "Amazon seller (merchant) id, e.g. 'A3PEV2IAOYFKM6' - the `sellerId` of an offer from /marketplace/amazon-offers. Give either `seller_id` (with `marketplace`) or a `url`."
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "required": false,
+        "description": "Any Amazon url that names the seller: the profile ('https://www.amazon.de/sp?seller=A1J6G6R957S11K'), a storefront ('/s?me=...') or a sold-by link. The seller id and marketplace are read from it."
+      },
+      {
+        "name": "marketplace",
+        "type": "string",
+        "required": false,
+        "description": "Regional Amazon site the seller sells on. Ratings and feedback are per marketplace. One of: amazon.com, amazon.co.uk, amazon.de, amazon.fr, amazon.it, amazon.es, amazon.nl, amazon.se, amazon.pl, amazon.com.be, amazon.com.tr, amazon.ca, amazon.com.mx, amazon.com.br, amazon.co.jp, amazon.in, amazon.ae, amazon.sa, amazon.sg, amazon.com.au.",
+        "default": "amazon.com"
+      },
+      {
+        "name": "proxy_country",
+        "type": "string",
+        "required": false,
+        "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Optional: a seller profile is the same from every country, so by default any country is used."
+      }
+    ]
+  },
+  {
     "name": "walmart_search",
     "title": "Scrape Walmart product search",
     "category": "E-commerce",
@@ -2041,6 +2242,91 @@ export const PLUGINS: PluginInfo[] = [
     ]
   },
   {
+    "name": "costco_search",
+    "title": "Scrape Costco product search",
+    "category": "E-commerce",
+    "path": "/marketplace/costco-search",
+    "fixed": {},
+    "description": "Searches Costco (costco.com, or costco.ca with `domain=ca`) for `query` and returns `products`: `productId`, `itemNumber`, `title`, `brand`, `url`, `image`, `price` (and `priceMax` for a price range), `wasPrice`, `currency`, `promotions`, `marketingStatement`, `rating`, `reviewCount`, `memberOnly`, `onlineOnly`, `warehouseOnly`, `badges`, `availability`, `inWarehouse`, `shipIt`, `buyableOnline`, `priceShownInCartOnly`, `model`, `features`, `category`, `categoryPath` and `variantCount`, plus `totalResults`. A keyword Costco sends to a category page (e.g. 'tv') returns that category, named in `redirectedTo`. `availability` is for the delivery location in `deliveryLocation`. Sort with `sort`, start at `page` and collect up to `max_results`.",
+    "params": [
+      {
+        "name": "query",
+        "type": "string",
+        "required": true,
+        "description": "What to search for, e.g. 'paper towels', 'kirkland coffee' or 'tv'."
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "required": false,
+        "description": "Result order: relevance, price_low, price_high, rating, newest, brand.",
+        "default": "relevance"
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "required": false,
+        "description": "1-based results page to start from (24 products per page, as on costco.com).",
+        "default": 1
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Products to collect from `page` on, 1-240. Up to 120 are billed as one request.",
+        "default": 24
+      },
+      {
+        "name": "include_out_of_stock",
+        "type": "boolean",
+        "required": false,
+        "description": "Also return products that are out of stock (Costco hides them by default).",
+        "default": false
+      },
+      {
+        "name": "domain",
+        "type": "string",
+        "required": false,
+        "description": "Costco storefront: com, ca ('com' is costco.com, 'ca' is costco.ca).",
+        "default": "com"
+      },
+      {
+        "name": "proxy_country",
+        "type": "string",
+        "required": false,
+        "description": "Proxy country the request is sent from (ISO-2, e.g. 'US'). Leave blank to let the API pick. Costco computes `availability` for the delivery location it derives from the visitor; it is named in `deliveryLocation`."
+      }
+    ]
+  },
+  {
+    "name": "costco_product",
+    "title": "Scrape a Costco product",
+    "category": "E-commerce",
+    "path": "/marketplace/costco-product",
+    "fixed": {},
+    "description": "Returns one Costco product (costco.com, or costco.ca with `domain=ca`) as JSON: `productId`, `itemNumber`, `title`, `brand`, `url`, `price`, `discount`, `currency`, `rating`, `reviewCount`, `memberOnly`, `onlineOnly`, `buyable`, `inWarehouse`, `shipIt`, `description`, `details`, `features`, `marketingStatement`, `promotionalStatement`, `shipping`, `manufacturer`, `manufacturerPartNumber`, `upc`, `minQuantity`, `maxQuantity`, `categoryPath`, `specifications`, `images`, `options` (e.g. every color and size) and `variants` (item number, option values, UPC). `product` takes a product id, an item number or a product link.",
+    "params": [
+      {
+        "name": "product",
+        "type": "string",
+        "required": true,
+        "description": "A Costco product id ('100361434'), item number ('17767') or product link (https://www.costco.com/p/-/kirkland-signature-colombian-coffee-dark-roast-3-lbs/100361434)."
+      },
+      {
+        "name": "domain",
+        "type": "string",
+        "required": false,
+        "description": "Costco storefront: com, ca ('com' is costco.com, 'ca' is costco.ca). Defaults to the link's storefront, else 'com'."
+      },
+      {
+        "name": "proxy_country",
+        "type": "string",
+        "required": false,
+        "description": "Proxy country the request is sent from (ISO-2, e.g. 'US'). Leave blank to let the API pick."
+      }
+    ]
+  },
+  {
     "name": "etsy_search",
     "title": "Scrape Etsy product search",
     "category": "E-commerce",
@@ -2108,7 +2394,7 @@ export const PLUGINS: PluginInfo[] = [
     "category": "E-commerce",
     "path": "/marketplace/shein-search",
     "fixed": {},
-    "description": "Searches SHEIN (US store) for `query` and returns the products as JSON: `id`, `sku`, `title`, `url`, `price`, `originalPrice`, `currency`, `discountPercent`, `rating`, `reviewCount`, `category`, `image`, `soldOut` and `storeCode`. Order with `sort`, filter with `min_price`/`max_price`. Returns SHEIN's first results page (up to 20 products); SHEIN does not serve deeper pages to automated clients.",
+    "description": "Searches SHEIN (US store) for `query` and returns the products as JSON: `id`, `sku`, `title`, `url`, `price`, `originalPrice`, `currency`, `discountPercent`, `rating`, `reviewCount`, `reviewCountText`, `category`, `image`, `soldOut` and `storeCode`. Order with `sort`, filter with `min_price`/`max_price` (enforced on `price`). Returns SHEIN's first results page (up to 20 products); SHEIN does not serve deeper pages to automated clients.",
     "params": [
       {
         "name": "query",
@@ -2902,6 +3188,445 @@ export const PLUGINS: PluginInfo[] = [
     ]
   },
   {
+    "name": "flipkart_search",
+    "title": "Scrape Flipkart product search",
+    "category": "E-commerce",
+    "path": "/marketplace/flipkart-search",
+    "fixed": {},
+    "description": "Searches Flipkart (India) for `query` and returns `products`, each with `productId` (the FSN, e.g. MOBHQV9YCUG4ZQZK), `itemId`, `listingId`, `title`, `brand`, `price`, `originalPrice` (MRP when discounted), `discountPercent`, `currency` (INR), `rating`, `ratingCount`, `reviewCount`, `assured` (F-Assured), `sponsored`, `badge` (e.g. Bestseller), `availability` / `inStock`, `keySpecs`, `category`, `image`, `images` and `url`. Also `total` (results Flipkart reports), `totalPages` and `nextPage`. `sort` orders the results, `min_price` / `max_price` filter by price, `page` picks the first page and `max_results` collects across pages. One unit per Flipkart page read.",
+    "params": [
+      {
+        "name": "query",
+        "type": "string",
+        "required": true,
+        "description": "What to search for, e.g. 'iphone 17' or 'running shoes'."
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "required": false,
+        "description": "Result order: relevance, popularity, price_asc, price_desc, newest.",
+        "default": "relevance"
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "required": false,
+        "description": "First Flipkart results page to read (1-100).",
+        "default": 1
+      },
+      {
+        "name": "min_price",
+        "type": "integer",
+        "required": false,
+        "description": "Lowest price in rupees (INR)."
+      },
+      {
+        "name": "max_price",
+        "type": "integer",
+        "required": false,
+        "description": "Highest price in rupees (INR)."
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Products to collect across pages, 1-240. A page holds 24 products (40 in fashion grids); each page is one unit.",
+        "default": 24
+      },
+      {
+        "name": "proxy_country",
+        "type": "string",
+        "required": false,
+        "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+      }
+    ]
+  },
+  {
+    "name": "flipkart_product",
+    "title": "Scrape a Flipkart product",
+    "category": "E-commerce",
+    "path": "/marketplace/flipkart-product",
+    "fixed": {},
+    "description": "Returns one Flipkart (India) product by `product_id` (FSN or `itm` id) or `url`: `productId`, `itemId`, `listingId`, `title`, `brand`, `description`, `category`, `breadcrumbs`, `price`, `originalPrice` (MRP), `discountPercent`, `bestPrice` (with bank offers), `currency`, `availability` / `inStock`, `rating`, `ratingCount`, `reviewCount`, `ratingBreakdown` (1-5 stars), `aspectRatings` (e.g. Camera, Battery), `assured`, `selectedAttributes`, `highlights`, `specifications` (group / name / value), `images`, `variants` (dimension, value, productId, price, available, url), `seller` (name, id, rating, years on Flipkart), `offerCount`, `offers` (bank and exchange offers), `deliveryDays`, `cashOnDelivery`, `returnPolicy`, `reviews` (top reviews) and `url`. One unit per call.",
+    "params": [
+      {
+        "name": "product_id",
+        "type": "string",
+        "required": false,
+        "description": "Flipkart product id: the FSN (`pid`, e.g. MOBHQV9YCUG4ZQZK) or the `itm...` id from a product link."
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "required": false,
+        "description": "A Flipkart product link, e.g. https://www.flipkart.com/apple-iphone-17-black-256-gb/p/itmc61b40459dd98?pid=MOBHQV9YCUG4ZQZK. Used instead of `product_id`."
+      },
+      {
+        "name": "proxy_country",
+        "type": "string",
+        "required": false,
+        "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Leave blank to let the API pick."
+      }
+    ]
+  },
+  {
+    "name": "lazada_search",
+    "title": "Scrape Lazada product search",
+    "category": "E-commerce",
+    "path": "/marketplace/lazada-search",
+    "fixed": {},
+    "description": "Searches a Lazada market (Singapore, Malaysia, Thailand, Philippines, Vietnam or Indonesia - `country`) for `query` and returns `products`, each with `position`, `itemId`, `skuId`, `name`, `price`, `priceText`, `originalPrice` (crossed-out price), `discountPercent`, `rating`, `reviewCount`, `sold` (units sold, as Lazada rounds it) and `soldText`, `brand`, `seller` / `sellerId`, `location` (ships from), `inStock`, `lazMall`, `freeShipping`, `sponsored`, `image` and `url`. Also `total` (results Lazada lets you page through), `matches` (all matches it reports), `currency` and `nextPage`. `sort` orders the results, `min_price` / `max_price` filter by price, `page` picks the first page and `max_results` collects across pages (40 a page). One unit per Lazada page read.",
+    "params": [
+      {
+        "name": "query",
+        "type": "string",
+        "required": true,
+        "description": "What to search for, e.g. 'iphone case' or 'air fryer'."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "required": false,
+        "description": "Lazada market: 'sg' (lazada.sg), 'my' (lazada.com.my), 'th' (lazada.co.th), 'ph' (lazada.com.ph), 'vn' (lazada.vn), 'id' (lazada.co.id). Default 'sg'. Prices are in that market's currency."
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "required": false,
+        "description": "Result order: relevance, price_asc, price_desc.",
+        "default": "relevance"
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "required": false,
+        "description": "First Lazada results page to read (1-102).",
+        "default": 1
+      },
+      {
+        "name": "min_price",
+        "type": "number",
+        "required": false,
+        "description": "Lowest price, in the market's currency."
+      },
+      {
+        "name": "max_price",
+        "type": "number",
+        "required": false,
+        "description": "Highest price, in the market's currency."
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Products to collect across pages, 1-400. A page holds 40 products; each page is one unit.",
+        "default": 40
+      }
+    ]
+  },
+  {
+    "name": "lazada_product",
+    "title": "Scrape a Lazada product",
+    "category": "E-commerce",
+    "path": "/marketplace/lazada-product",
+    "fixed": {},
+    "description": "Returns one Lazada product by `url`, or by `item_id` (+ optional `sku_id`) and `country`: `itemId`, `skuId`, `title`, `brand`, `description`, `highlights`, `categories`, `price`, `priceText`, `originalPrice`, `discountPercent`, `currency`, `rating`, `reviewCount`, `ratingBreakdown` (1-5 stars), `inStock`, `maxQuantity`, `images`, `specifications`, `variantDimensions` (e.g. colour and storage with their values), `variants` (every SKU with its attributes, price, image, availability and link), `seller` (id, shop id, name, positive rating, store highlights, link), `delivery` (option and estimate), `warranties` and `url`. One unit per call.",
+    "params": [
+      {
+        "name": "item_id",
+        "type": "string",
+        "required": false,
+        "description": "Lazada item id (the number after '-i' in a product link, e.g. 13907853520)."
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "required": false,
+        "description": "A Lazada product link, e.g. https://www.lazada.sg/products/apple-iphone-18-pro-max-i13907853520-s124925162667.html. Used instead of `item_id` / `country`."
+      },
+      {
+        "name": "sku_id",
+        "type": "string",
+        "required": false,
+        "description": "Optional SKU id (the number after '-s') to select one variant."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "required": false,
+        "description": "Lazada market: 'sg' (lazada.sg), 'my' (lazada.com.my), 'th' (lazada.co.th), 'ph' (lazada.com.ph), 'vn' (lazada.vn), 'id' (lazada.co.id). Default 'sg'. Prices are in that market's currency."
+      }
+    ]
+  },
+  {
+    "name": "allegro_search",
+    "title": "Scrape Allegro search",
+    "category": "E-commerce",
+    "path": "/marketplace/allegro-search",
+    "fixed": {},
+    "description": "Searches Allegro (Poland) for `query` and returns `products` (offers), each with `position`, `offerId`, `productId`, `title`, `price`, `currency` (PLN), `priceWithDelivery`, `deliveryFrom`, `freeDelivery`, `smart` (Allegro Smart!), `deliveryLabel`, `rating`, `ratingCount`, `recentBuyers` (bought in the last 30 days), `offersOfProduct`, `quantity`, `sponsored`, `promoted`, `superSeller`, `seller` (id, login, company, positive feedback %), `parameters`, `image`, `images` and `url`. Also `total` (all matches), `available` (offers Allegro lets you page through), `lastPage`, `category` and `nextPage`. Filter with `min_price` / `max_price`, `condition`, `shipping_from`, `delivery_time`, `offer_type`, `store_city` and `store_region`; `sort` orders the results; `page` and `max_results` page through them. One unit per Allegro page read.",
+    "params": [
+      {
+        "name": "query",
+        "type": "string",
+        "required": true,
+        "description": "What to search for, e.g. 'iphone 15' or 'lego'."
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "required": false,
+        "description": "Result order: relevance, price_asc, price_desc, price_with_delivery_asc, price_with_delivery_desc, popularity, ending_soon, newest, rating.",
+        "default": "relevance"
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "required": false,
+        "description": "First Allegro results page to read (1-100).",
+        "default": 1
+      },
+      {
+        "name": "min_price",
+        "type": "number",
+        "required": false,
+        "description": "Lowest price in zloty (PLN)."
+      },
+      {
+        "name": "max_price",
+        "type": "number",
+        "required": false,
+        "description": "Highest price in zloty (PLN)."
+      },
+      {
+        "name": "condition",
+        "type": "string",
+        "required": false,
+        "description": "Item condition: new, like_new, refurbished, used, damaged."
+      },
+      {
+        "name": "shipping_from",
+        "type": "string",
+        "required": false,
+        "description": "Where the item ships from: pl, cz, sk, hu, cn, eu, allegro_warehouse."
+      },
+      {
+        "name": "delivery_time",
+        "type": "string",
+        "required": false,
+        "description": "Delivery speed: one_day, two_days, three_days (one_day = tomorrow)."
+      },
+      {
+        "name": "offer_type",
+        "type": "string",
+        "required": false,
+        "description": "Offer type: buy_now, auction (buy_now = fixed price)."
+      },
+      {
+        "name": "store_city",
+        "type": "string",
+        "required": false,
+        "description": "The seller's town, e.g. 'Kraków'."
+      },
+      {
+        "name": "store_region",
+        "type": "string",
+        "required": false,
+        "description": "The seller's voivodeship, e.g. 'mazowieckie' or 'slaskie' (or its number 1-16)."
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Offers to collect across pages, 1-300. A page holds about 60 offers; each page is one unit.",
+        "default": 60
+      },
+      {
+        "name": "proxy_country",
+        "type": "string",
+        "required": false,
+        "description": "Proxy country the request is sent from (ISO-2, e.g. 'DE', 'CZ'). Leave blank to let the API pick (recommended: Allegro refuses some countries' exits)."
+      }
+    ]
+  },
+  {
+    "name": "allegro_product",
+    "title": "Scrape an Allegro offer",
+    "category": "E-commerce",
+    "path": "/marketplace/allegro-product",
+    "fixed": {},
+    "description": "Returns one Allegro (Poland) offer by `offer_id` or `url`: `offerId`, `productId`, `title`, `productName`, `brand`, `gtin`, `price`, `originalPrice`, `currency`, `sellingMode` (buy_now / auction), `available` (stock), `condition`, `rating`, `ratingCount`, `ratingBreakdown` (1-5 stars), `recentBuyers`, `category`, `breadcrumbs`, `parameters` (group / name / value), `description`, `images`, `variants`, `seller` (id, login, Super Seller, feedback, company name and tax id), `location`, `smart`, `delivery`, `shippingMethods` (name, price, Smart! price), `returnDays`, `warranty`, `endsAt`, `reviews` and `url`. One unit per call.",
+    "params": [
+      {
+        "name": "offer_id",
+        "type": "string",
+        "required": false,
+        "description": "Allegro offer number, e.g. 16680923539 (the number at the end of an /oferta/ link or its offerId)."
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "required": false,
+        "description": "An Allegro offer or product link, e.g. https://allegro.pl/oferta/16680923539 or https://allegro.pl/produkt/...?offerId=16680923539. Used instead of `offer_id`."
+      },
+      {
+        "name": "proxy_country",
+        "type": "string",
+        "required": false,
+        "description": "Proxy country the request is sent from (ISO-2, e.g. 'DE', 'CZ'). Leave blank to let the API pick (recommended: Allegro refuses some countries' exits)."
+      }
+    ]
+  },
+  {
+    "name": "falabella_search",
+    "title": "Scrape Falabella product search (Chile, Colombia, Peru)",
+    "category": "E-commerce",
+    "path": "/marketplace/falabella-search",
+    "fixed": {},
+    "description": "Searches a Falabella store (`country`: cl, co or pe) for `query` and returns the products as JSON: `productId`, `skuId`, `title`, `brand`, `url`, `price` (and `priceMax` for a price range), `cmrPrice` (price with the Falabella CMR card), `originalPrice` (crossed-out list price), `discountPercent`, `currency`, `rating`, `reviewCount`, `sellerId` / `sellerName`, `sponsored`, `bestSeller`, `freeShipping`, `deliveryLabels`, `badges`, `installmentsWithoutInterest`, `image` / `images`, `topSpecifications` and `variants` (colour / size options). Sort with `sort`, start at `page`, and collect up to `max_results` across pages (48 per page, each page billed as one request, see `pagesFetched`). `url` takes a Falabella search link instead of `query`.",
+    "params": [
+      {
+        "name": "query",
+        "type": "string",
+        "required": false,
+        "description": "What to search, e.g. 'zapatillas nike', 'televisor 55' or 'notebook'."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "required": false,
+        "description": "Falabella store: 'cl' (www.falabella.com, prices in CLP), 'co' (www.falabella.com.co, prices in COP), 'pe' (www.falabella.com.pe, prices in PEN). Default 'cl'."
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "required": false,
+        "description": "Order: relevance, price_low, price_high, rating, brand.",
+        "default": "relevance"
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "required": false,
+        "description": "1-based results page to start from (1-200).",
+        "default": 1
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Products to collect across pages (1-480); Falabella serves 48 per page and each page fetched is billed as one request.",
+        "default": 48
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "required": false,
+        "description": "Instead of `query`: a Falabella search link, e.g. https://www.falabella.com/falabella-cl/search?Ntt=zapatillas (its store, sort and page are used)."
+      }
+    ]
+  },
+  {
+    "name": "falabella_product",
+    "title": "Scrape one Falabella product's full detail",
+    "category": "E-commerce",
+    "path": "/marketplace/falabella-product",
+    "fixed": {},
+    "description": "Fetches one Falabella product (by `product_id` + `country`, or `url`) and returns it as JSON: `productId`, `skuId`, `url`, `title`, `brand`, `description` / `longDescription`, `price` / `priceMax`, `cmrPrice`, `originalPrice`, `discountPercent`, `currency`, `available`, `stockUnits` (only when Falabella shows a low-stock count), `rating`, `reviewCount`, `sellerId` / `sellerName`, `freeShipping`, `deliveryLabels`, `badges`, `installmentsWithoutInterest`, `breadcrumbs`, `topSpecifications`, `specifications` (name / value), `images`, `videos`, `returnPolicy` and `variants` (every colour / size SKU with its own price, availability, delivery options and images). The top-level price fields are those of `sku` (default the main variant). Companion to `/marketplace/falabella-search`.",
+    "params": [
+      {
+        "name": "product_id",
+        "type": "string",
+        "required": false,
+        "description": "Falabella product id, e.g. '17776888' or 'prod11930024' (the part after /product/ in a product link). Needs `country` unless it is 'cl'."
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "required": false,
+        "description": "Instead of `product_id`: a Falabella product link, e.g. https://www.falabella.com/falabella-cl/product/17776888/iphone-duo-256gb-night-sky/17776887 (its store and SKU are used)."
+      },
+      {
+        "name": "sku",
+        "type": "string",
+        "required": false,
+        "description": "Variant (SKU) whose price and availability fill the top-level fields; default the product's main variant. Every variant is listed in `variants` either way."
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "required": false,
+        "description": "With `product_id`: Falabella store: 'cl' (www.falabella.com, prices in CLP), 'co' (www.falabella.com.co, prices in COP), 'pe' (www.falabella.com.pe, prices in PEN). Default 'cl'."
+      }
+    ]
+  },
+  {
+    "name": "magazineluiza_search",
+    "title": "Scrape Magazine Luiza (Magalu) product search",
+    "category": "E-commerce",
+    "path": "/marketplace/magazineluiza-search",
+    "fixed": {},
+    "description": "Searches Magazine Luiza (magazineluiza.com.br, Brazil) for `query` and returns the products as JSON: `productId`, `offerId`, `title`, `brand`, `url`, `price`, `bestPrice` with `bestPriceMethod` (usually the Pix price), `originalPrice` (list price), `discountPercent`, `currency` (BRL), `installments` (count, amount, interest-free), `rating`, `reviewCount`, `sellerId` / `sellerName`, `available`, `sponsored`, `magaluIndica`, `category` / `subcategory`, `badges`, `image` and `variations`. Sort with `sort`, start at `page`, and collect up to `max_results` across pages (40 per page, each page billed as one request, see `pagesFetched`). `url` takes a Magalu search link instead of `query`.",
+    "params": [
+      {
+        "name": "query",
+        "type": "string",
+        "required": false,
+        "description": "What to search, e.g. 'geladeira', 'smart tv 55' or 'air fryer'."
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "required": false,
+        "description": "Order: relevance, price_low, price_high, best_selling, rating, newest, fastest_delivery, price_with_shipping_low.",
+        "default": "relevance"
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "required": false,
+        "description": "1-based results page to start from (1-25).",
+        "default": 1
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Products to collect across pages (1-200); Magalu serves 40 per page and each page fetched is billed as one request.",
+        "default": 40
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "required": false,
+        "description": "Instead of `query`: a Magazine Luiza search link, e.g. https://www.magazineluiza.com.br/busca/geladeira/ (its sort and page are used)."
+      }
+    ]
+  },
+  {
+    "name": "magazineluiza_product",
+    "title": "Scrape one Magazine Luiza (Magalu) product's full detail",
+    "category": "E-commerce",
+    "path": "/marketplace/magazineluiza-product",
+    "fixed": {},
+    "description": "Fetches one Magazine Luiza product (by `product_id` or `url`) and returns it as JSON: `productId`, `offerId`, `url`, `title`, `brand`, `reference`, `description`, `keySellingPoints`, `price`, `bestPrice` / `bestPriceMethod`, `originalPrice`, `discountPercent`, `currency` (BRL), `installments`, `available`, `rating`, `reviewCount`, `commentCount`, `ratingHistogram`, `ratingAspects`, `reviews` (first page: rating, text, author, date, photos), `seller` (id, name, legal name, city / state, seller since, score, total sales, answer and delivery rate), `coupon`, `badges`, `breadcrumbs`, `specifications` (group / name / value), `variations` (colour, size, capacity... with the product id of each option), `images`, `videos` and package `dimensions`. Companion to `/marketplace/magazineluiza-search`.",
+    "params": [
+      {
+        "name": "product_id",
+        "type": "string",
+        "required": false,
+        "description": "Magalu product id, e.g. '240354400' or 'jc60hbaa6d' (the part after /p/ in a product link)."
+      },
+      {
+        "name": "url",
+        "type": "string",
+        "required": false,
+        "description": "Instead of `product_id`: a Magazine Luiza product link, e.g. https://www.magazineluiza.com.br/notebook-acer-aspire-go/p/240354400/in/nota/."
+      }
+    ]
+  },
+  {
     "name": "ebay_search",
     "title": "Scrape eBay search listings",
     "category": "Classifieds & Resale",
@@ -3630,6 +4355,221 @@ export const PLUGINS: PluginInfo[] = [
         "type": "string",
         "required": false,
         "description": "Proxy country the request is sent from (ISO-2, e.g. 'AU', 'US'). Leave blank: ALDI answers every country, so the load spreads over all exits."
+      }
+    ]
+  },
+  {
+    "name": "kroger_search",
+    "title": "Search Kroger and its banner stores (Ralphs, Fred Meyer, King Soopers, ...)",
+    "category": "Groceries",
+    "path": "/groceries/kroger-search",
+    "fixed": {},
+    "description": "Products matching `query` on Kroger or one of its banner sites (`banner`: kroger, ralphs, fredmeyer, kingsoopers, frysfood, smithsfoodanddrug, qfc, dillons, bakersplus, citymarket, gerbes, foodfourless, harristeeter, marianos, metromarket, picknsave, jaycfoods, payless, foodsco), priced for one store. Returns `products` in the site's order with `productId` (Kroger's 13-digit id), `upc`, `gtin14`, `name`, `brand`, `size`, `url`, `image`, `price` (what the shopper pays now), `regularPrice`, `salePrice`, `onSale`, `savings`, `promotion` (`type` sale / price_drop / multibuy / must_buy / bogo, `text`, multibuy `quantity` and `quantityPrice`, `expiresAt`), `unitPrice` (`price`, `unit`, `text`), `soldBy` (unit / weight; weighed items carry Kroger's per-item estimate), `available`, `stockLevel` (HIGH / LOW / TEMPORARILY_OUT_OF_STOCK), `maxOrderQuantity`, `fulfillment` (`pickup`, `delivery`, `inStore`, `ship`: whether the store offers the product that way), `aisle` (`number`, `description`, `side`, `bay`, `shelf`), `rating`, `reviewCount`, `categories`, `snapEligible` and `offers` (extra deals such as 'Save $2 each when you buy 3'), plus `position` and `sponsored`. `totalResults` is the site's total match count; one call returns the first page (up to 24 products). `brand` narrows the search to one or more brands. `store` names the store the prices are for: `storeId`, `name`, `banner`, `address`, `latitude`, `longitude`, `fulfillmentMethods`, `hours`, `pricesFor` (pickup or inStore) and `selectedBy` (store_id / zip / default); with `zip`, `nearbyStores` lists the banner's other stores near it. Prices are in USD and depend on the store. One billed unit per call.",
+    "params": [
+      {
+        "name": "query",
+        "type": "string",
+        "required": true,
+        "description": "What to search for, e.g. 'milk', 'coca cola', 'gluten free bread'."
+      },
+      {
+        "name": "banner",
+        "type": "string",
+        "required": false,
+        "description": "Which Kroger-family store site to use: 'kroger' (Kroger), 'ralphs' (Ralphs), 'fredmeyer' (Fred Meyer), 'kingsoopers' (King Soopers), 'frysfood' (Fry's Food), 'smithsfoodanddrug' (Smith's), 'qfc' (QFC), 'dillons' (Dillons), 'bakersplus' (Baker's), 'citymarket' (City Market), 'gerbes' (Gerbes), 'foodfourless' (Food 4 Less), 'harristeeter' (Harris Teeter), 'marianos' (Mariano's), 'metromarket' (Metro Market), 'picknsave' (Pick 'n Save), 'jaycfoods' (Jay C Food Stores), 'payless' (Pay Less), 'foodsco' (FoodsCo). Host names (ralphs.com) and common spellings (food4less, smiths, frys) work too.",
+        "default": "kroger"
+      },
+      {
+        "name": "brand",
+        "type": "string",
+        "required": false,
+        "description": "Only products of these brands, e.g. 'Kroger' or 'Kroger|Simple Truth' (separate several with | or ,)."
+      },
+      {
+        "name": "store_id",
+        "type": "string",
+        "required": false,
+        "description": "Kroger store id (8 digits, e.g. '01400929'): prices, stock and aisles are that store's. The id is shown as `store.storeId` in every answer and in `nearbyStores` when you search by `zip`."
+      },
+      {
+        "name": "zip",
+        "type": "string",
+        "required": false,
+        "description": "US ZIP code: prices for the banner's nearest store to it that takes online orders (the nearest store at all when none does). The answer lists the nearby stores in `nearbyStores`. Leave both `store_id` and `zip` blank for the banner's default store."
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Products to return, 1-24 (the first page of results).",
+        "default": 24
+      }
+    ]
+  },
+  {
+    "name": "kroger_product",
+    "title": "Kroger product details (Kroger, Ralphs, Fred Meyer, King Soopers, ...)",
+    "category": "Groceries",
+    "path": "/groceries/kroger-product",
+    "fixed": {},
+    "description": "One product from Kroger or one of its banner sites, by Kroger product id, UPC / GTIN barcode or product link, priced for one store. `product` has `productId` (Kroger's 13-digit id), `upc`, `gtin14`, `name`, `brand`, `size`, `url`, `image`, `price` (what the shopper pays now), `regularPrice`, `salePrice`, `onSale`, `savings`, `promotion` (`type` sale / price_drop / multibuy / must_buy / bogo, `text`, multibuy `quantity` and `quantityPrice`, `expiresAt`), `unitPrice` (`price`, `unit`, `text`), `soldBy` (unit / weight; weighed items carry Kroger's per-item estimate), `available`, `stockLevel` (HIGH / LOW / TEMPORARILY_OUT_OF_STOCK), `maxOrderQuantity`, `fulfillment` (`pickup`, `delivery`, `inStore`, `ship`: whether the store offers the product that way), `aisle` (`number`, `description`, `side`, `bay`, `shelf`), `rating`, `reviewCount`, `categories`, `snapEligible` and `offers` (extra deals such as 'Save $2 each when you buy 3'), and the product page details: `description`, `highlights`, `images` (every angle, large), `ingredients`, `allergens`, `nutrition` (`servingSize`, `servingsPerContainer`, `nutrients` with amount, unit and % daily value), `dietary`, `claims`, `organic`, `glutenFree`, `kosher`, `nonGmo`, `taxonomy` (category paths), `countryOfOrigin`, `storage`, `dimensions`, `weight`, `ratingBreakdown`, `alcohol` and `ageRestricted`. `store` names the store the prices are for: `storeId`, `name`, `banner`, `address`, `latitude`, `longitude`, `fulfillmentMethods`, `hours`, `pricesFor` (pickup or inStore) and `selectedBy` (store_id / zip / default). One billed unit per call.",
+    "params": [
+      {
+        "name": "product",
+        "type": "string",
+        "required": true,
+        "description": "The product: Kroger's 13-digit product id ('0001111041700'), a UPC or GTIN barcode ('011110417005'), or a product link from any banner (https://www.kroger.com/p/kroger-2-reduced-fat-milk/0001111041700). A link picks its banner by itself."
+      },
+      {
+        "name": "banner",
+        "type": "string",
+        "required": false,
+        "description": "Which Kroger-family store site to use: 'kroger' (Kroger), 'ralphs' (Ralphs), 'fredmeyer' (Fred Meyer), 'kingsoopers' (King Soopers), 'frysfood' (Fry's Food), 'smithsfoodanddrug' (Smith's), 'qfc' (QFC), 'dillons' (Dillons), 'bakersplus' (Baker's), 'citymarket' (City Market), 'gerbes' (Gerbes), 'foodfourless' (Food 4 Less), 'harristeeter' (Harris Teeter), 'marianos' (Mariano's), 'metromarket' (Metro Market), 'picknsave' (Pick 'n Save), 'jaycfoods' (Jay C Food Stores), 'payless' (Pay Less), 'foodsco' (FoodsCo). Host names (ralphs.com) and common spellings (food4less, smiths, frys) work too. Default 'kroger'."
+      },
+      {
+        "name": "store_id",
+        "type": "string",
+        "required": false,
+        "description": "Kroger store id (8 digits, e.g. '01400929'): prices, stock and aisles are that store's. The id is shown as `store.storeId` in every answer and in `nearbyStores` when you search by `zip`."
+      },
+      {
+        "name": "zip",
+        "type": "string",
+        "required": false,
+        "description": "US ZIP code: prices for the banner's nearest store to it that takes online orders (the nearest store at all when none does). The answer lists the nearby stores in `nearbyStores`. Leave both `store_id` and `zip` blank for the banner's default store."
+      }
+    ]
+  },
+  {
+    "name": "instacart_search",
+    "title": "Scrape Instacart product search",
+    "category": "Groceries",
+    "path": "/groceries/instacart-search",
+    "fixed": {},
+    "description": "Searches one retailer's Instacart catalogue (Costco, Aldi, Publix, Safeway, Kroger, CVS, Sprouts, ... named by `retailer`) for `query` and returns `products` in Instacart's order, priced at the store Instacart assigns to `zip`: `id` (item id), `productId`, `name`, `brand`, `size`, `packageSize`, `price`, `priceText`, `wasPrice`, `onSale`, `unitPrice` (`price`, `per`, `text`), `soldBy` (each / weight), `estimatedWeight`, `promotions` (`text`, `type`), `available`, `stockLevel`, `rating`, `reviewCount`, `category`, `storeBrand`, `dietary`, `aisle`, `image` and `url`, plus `store` (the shop, its location id and the ZIP code used) and `totalResults`. Prices are Instacart's prices in USD, which can differ from the retailer's in-store prices. Up to `max_results` products, billed one unit per 30.",
+    "params": [
+      {
+        "name": "query",
+        "type": "string",
+        "required": true,
+        "description": "What to search for, e.g. 'milk', 'greek yogurt', 'paper towels'."
+      },
+      {
+        "name": "retailer",
+        "type": "string",
+        "required": false,
+        "description": "The retailer's Instacart slug: the part after /store/ in an Instacart link, e.g. 'costco', 'aldi', 'publix', 'safeway', 'kroger', 'cvs', 'sprouts', 'wegmans', 'sams-club'. An Instacart store link is accepted too."
+      },
+      {
+        "name": "zip",
+        "type": "string",
+        "required": false,
+        "description": "5-digit US ZIP code of the delivery area. Instacart prices and stock belong to the store serving it. Default 94105 (San Francisco)."
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Products to return, 1-300, in Instacart's order. Billed one unit per 30.",
+        "default": 30
+      }
+    ]
+  },
+  {
+    "name": "instacart_product",
+    "title": "Scrape an Instacart product",
+    "category": "Groceries",
+    "path": "/groceries/instacart-product",
+    "fixed": {},
+    "description": "One product of a retailer on Instacart, priced at the store Instacart assigns to `zip`: the search fields (`id`, `productId`, `name`, `brand`, `size`, `packageSize`, `price`, `wasPrice`, `onSale`, `unitPrice`, `soldBy`, `promotions`, `available`, `stockLevel`, `rating`, `reviewCount`, `category`, `dietary`, `aisle`, `image`, `url`) plus `description`, `ingredients`, `directions`, `warnings`, the product page `sections` and the `images` gallery, and `store`. `product` is an Instacart product id, an item id from a search result or a product link. One unit per call.",
+    "params": [
+      {
+        "name": "product",
+        "type": "string",
+        "required": true,
+        "description": "An Instacart product id ('16902650'), an item id from a search result ('items_4142-16902650') or a product link (https://www.instacart.com/products/16902650-...)."
+      },
+      {
+        "name": "retailer",
+        "type": "string",
+        "required": false,
+        "description": "The retailer's Instacart slug: the part after /store/ in an Instacart link, e.g. 'costco', 'aldi', 'publix', 'safeway', 'kroger', 'cvs', 'sprouts', 'wegmans', 'sams-club'. An Instacart store link is accepted too. Optional when `product` is a link carrying `retailerSlug`."
+      },
+      {
+        "name": "zip",
+        "type": "string",
+        "required": false,
+        "description": "5-digit US ZIP code of the delivery area. Instacart prices and stock belong to the store serving it. Default 94105 (San Francisco)."
+      }
+    ]
+  },
+  {
+    "name": "publix_search",
+    "title": "Scrape Publix grocery search",
+    "category": "Groceries",
+    "path": "/groceries/publix-search",
+    "fixed": {},
+    "description": "Searches publix.com (US) for `query` at one store and returns `products`: `productId`, `itemCode`, `title`, `brand`, `size`, `url`, `image`, `price`, `priceText`, `unit` (e.g. 'lb' for items sold by weight), `wasPrice`, `currency`, `onSale`, `promotion` (`type` such as BOGO, `message`, `conditions`, `validThrough`, `savings`), `hasCoupon`, `soldByWeight`, `aisle`, `category`, `categoryPath` and `storeId`, plus `store` (the store the prices are for), `totalResults`, `totalPages` and `nextPage`. Publix publishes a price online only while an item is on promotion, so `price` is null for the rest. A keyword Publix sends to a category returns that category, named in `redirectedTo`; one it sends to a page that lists no products (the weekly ad, cake ordering, store locations) answers with no products and `sentElsewhere` true.",
+    "params": [
+      {
+        "name": "query",
+        "type": "string",
+        "required": true,
+        "description": "What to search for, e.g. 'milk', 'cheerios' or 'chicken breast'."
+      },
+      {
+        "name": "store_id",
+        "type": "string",
+        "required": false,
+        "description": "Publix store number whose prices and promotions to return, e.g. '1614'. Give this or `zip`; with neither, a store in Lakeland, FL is used. The store used is named in `store`."
+      },
+      {
+        "name": "zip",
+        "type": "string",
+        "required": false,
+        "description": "US ZIP code; the nearest Publix store is used, e.g. '33801'."
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "required": false,
+        "description": "1-based results page to start from (48 products per page).",
+        "default": 1
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Products to collect from `page` on, 1-480. Each page fetched is billed one unit.",
+        "default": 48
+      }
+    ]
+  },
+  {
+    "name": "publix_product",
+    "title": "Scrape a Publix product",
+    "category": "Groceries",
+    "path": "/groceries/publix-product",
+    "fixed": {},
+    "description": "Returns one publix.com (US) product at one store as `product`: the search fields (`productId`, `itemCode`, `title`, `brand`, `size`, `price`, `wasPrice`, `promotion`, `aisle` and so on) plus `images`, `description`, `ingredients`, `directions`, `allergens`, `available`, `categories`, `badges`, `couponCount`, `smartLabelUrl` and `relatedProducts`, and `store`, the store the price is for. Publix publishes a price online only while an item is on promotion.",
+    "params": [
+      {
+        "name": "product",
+        "type": "string",
+        "required": true,
+        "description": "A Publix product id ('RIO-PCI-103438') or product link (https://www.publix.com/pd/cheerios-cereal-large-size/RIO-PCI-103438)."
+      },
+      {
+        "name": "store_id",
+        "type": "string",
+        "required": false,
+        "description": "Publix store number whose prices and promotions to return, e.g. '1614'. Give this or `zip`; with neither, a store in Lakeland, FL is used. The store used is named in `store`."
+      },
+      {
+        "name": "zip",
+        "type": "string",
+        "required": false,
+        "description": "US ZIP code; the nearest Publix store is used, e.g. '33801'."
       }
     ]
   },

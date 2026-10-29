@@ -2,6 +2,19 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.9.0
+
+- 23 new site plugins in `list_plugins` / `run_plugin`: `kroger_search`,
+  `kroger_product`, `instacart_search`, `instacart_product`,
+  `publix_search` and `publix_product` (Groceries), `amazon_offers`,
+  `amazon_seller`, `costco_search`, `costco_product`, `flipkart_search`,
+  `flipkart_product`, `lazada_search`, `lazada_product`, `allegro_search`,
+  `allegro_product`, `falabella_search`, `falabella_product`,
+  `magazineluiza_search` and `magazineluiza_product` (E-commerce),
+  `google_ai_mode` and `google_lens` (Google), and `gemini` in a new AI
+  category. 147 plugins in all.
+- Dependency updates (`body-parser`, `fast-uri`) for `npm audit`.
+
 ## 0.8.1
 
 - Skyscanner flights, hotels and car hire plugins: every input now has a
