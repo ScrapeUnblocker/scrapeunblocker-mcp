@@ -2,6 +2,21 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.11.0
+
+- 29 new site plugins in `list_plugins` / `run_plugin`: `mediamarkt_search`,
+  `mediamarkt_product`, `cdiscount_search`, `cdiscount_product`,
+  `idealo_search`, `idealo_offers`, `rakuten_search`, `rakuten_product`,
+  `indiamart_search`, `indiamart_product`, `bedbathandbeyond_search`,
+  `bedbathandbeyond_product`, `petco_search`, `petco_product`,
+  `neobits_product`, `lowes_search`, `lowes_product`, `menards_search`,
+  `menards_product`, `grainger_search` and `grainger_product`, product pages
+  next to existing searches (`walmart_product`, `ebay_product`,
+  `etsy_product`, `bestbuy_product`, `target_category`, `target_product`,
+  `aliexpress_product`), and `chatgpt` (AI). 177 plugins in all.
+- Plugin descriptions no longer mention exit or proxy details
+  (`exitProvider`); API responses no longer carry them.
+
 ## 0.10.0
 
 - New site plugin `maps_reviews` (Google) in `list_plugins` / `run_plugin`:
