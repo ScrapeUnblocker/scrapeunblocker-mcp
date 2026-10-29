@@ -922,6 +922,75 @@ export const PLUGINS: PluginInfo[] = [
     ]
   },
   {
+    "name": "maps_reviews",
+    "title": "Scrape Google Maps reviews",
+    "category": "Google",
+    "path": "/maps/reviews",
+    "fixed": {},
+    "description": "Returns one Google Maps place's reviews as JSON, sorted the way Google sorts them: `relevant`, `newest`, `highest` or `lowest`. Each review has `rating` (1-5), `date` (exact ISO 8601, UTC) + `timestamp`, `relativeDate`, `text` (original) + `language`, `translatedText` (into `hl`, when the review is in another language), `author`, `photos`, `details` (guided answers such as 'Rooms: 5'), `ownerResponse` and `reviewUrl`. The answer also carries a `place` summary and `nextPageToken` for paging. Identify the place with `feature_id` (0xHEX:0xHEX), `place_id` (ChIJ...) or a Maps `url`. Reviews come in pages of 20; each page fetched is one billed unit.",
+    "params": [
+      {
+        "name": "url",
+        "type": "string",
+        "required": false,
+        "description": "A Google Maps place URL (share link or /maps/place/... URL). The feature id or place_id is read out of it."
+      },
+      {
+        "name": "place_id",
+        "type": "string",
+        "required": false,
+        "description": "A Google place_id, e.g. 'ChIJN1t_tDeuEmsRUsoyG83frY4'."
+      },
+      {
+        "name": "feature_id",
+        "type": "string",
+        "required": false,
+        "description": "A Maps feature id '0xHEX:0xHEX', e.g. '0x4776901a5d4813b3:0x2a497c8b414893c'. Fastest - no resolve step."
+      },
+      {
+        "name": "sort",
+        "type": "string",
+        "required": false,
+        "description": "Review order: 'relevant' (Google's default), 'newest', 'highest' or 'lowest'. SerpApi's 'qualityScore', 'newestFirst', 'ratingHigh' and 'ratingLow' are accepted too.",
+        "default": "relevant"
+      },
+      {
+        "name": "max_reviews",
+        "type": "integer",
+        "required": false,
+        "description": "How many reviews to return, 1-200. Reviews come in pages of 20; each page fetched is one billed unit.",
+        "default": 20
+      },
+      {
+        "name": "next_page_token",
+        "type": "string",
+        "required": false,
+        "description": "Continue from a previous answer's `nextPageToken` (same place and sort). When `max_reviews` is not a multiple of 20 the next page can repeat a few reviews - dedupe on `reviewId`."
+      },
+      {
+        "name": "hl",
+        "type": "string",
+        "required": false,
+        "description": "Language for Google's labels and the review translation (`translatedText`), e.g. 'en', 'de'. The original text is always returned in `text`.",
+        "default": "en"
+      },
+      {
+        "name": "gl",
+        "type": "string",
+        "required": false,
+        "description": "Google country, ISO-2 lowercase, e.g. 'us'.",
+        "default": "us"
+      },
+      {
+        "name": "proxy_country",
+        "type": "string",
+        "required": false,
+        "description": "Proxy country the request is sent from (ISO-2, e.g. 'US', 'DE'). Reviews are the same from any country.",
+        "default": "us"
+      }
+    ]
+  },
+  {
     "name": "google_trends",
     "title": "Scrape Google Trends (interest over time, by region, related queries)",
     "category": "Google",
@@ -6891,7 +6960,7 @@ export const PLUGINS: PluginInfo[] = [
         "name": "format",
         "type": "string",
         "required": false,
-        "description": "Output shape: segments, text. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
+        "description": "Output shape: text, segments. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
         "default": "segments"
       },
       {

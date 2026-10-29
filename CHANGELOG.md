@@ -2,6 +2,14 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.10.0
+
+- New site plugin `maps_reviews` (Google) in `list_plugins` / `run_plugin`:
+  Google Maps reviews of a place in Google's sort orders (relevant, newest,
+  highest, lowest) with exact ISO dates, original and translated text,
+  authors, photos, owner replies and page tokens. `POST /maps/reviews`.
+  148 plugins in all.
+
 ## 0.9.1
 
 - `shopee_product` and `shopee_search` plugin descriptions now cover
