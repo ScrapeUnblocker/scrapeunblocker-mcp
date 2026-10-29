@@ -2,6 +2,14 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.9.1
+
+- `shopee_product` and `shopee_search` plugin descriptions now cover
+  `availability` and `inStock`, sold-out variations (`models[].available`,
+  `tierIndex`), `categories` as the breadcrumb path plus `browseCategories`,
+  `isPixPrice`, and the JSON `{"status": "not_found", ...}` answer for a
+  product that does not exist. Tool names and inputs are unchanged.
+
 ## 0.9.0
 
 - 23 new site plugins in `list_plugins` / `run_plugin`: `kroger_search`,
