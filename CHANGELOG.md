@@ -2,6 +2,12 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.11.1
+
+- 2 new site plugins in `list_plugins` / `run_plugin`:
+  `bodegaaurrera_search` and `bodegaaurrera_product` (Bodega Aurrera,
+  Walmart de Mexico's discount chain; Groceries). 179 plugins in all.
+
 ## 0.11.0
 
 - 29 new site plugins in `list_plugins` / `run_plugin`: `mediamarkt_search`,
