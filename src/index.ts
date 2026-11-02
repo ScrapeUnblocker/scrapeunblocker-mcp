@@ -16,7 +16,7 @@ import { APIError, ScrapeUnblockerClient, errorForStatus } from "scrapeunblocker
 import { registerPluginTools } from "./plugin-tools.js";
 import { registerReadingTools, type PageSourceParams } from "./reading-tools.js";
 
-const VERSION = "0.12.0";
+const VERSION = "0.12.1";
 
 /** Default API host, matching the SDK. */
 const DEFAULT_BASE_URL = "https://api.scrapeunblocker.com";
@@ -664,9 +664,11 @@ server.registerTool(
     title: "Google search results",
     annotations: { title: "Google search results", readOnlyHint: true, openWorldHint: true, destructiveHint: false },
     description:
-      "Run a Google search through ScrapeUnblocker and return the organic " +
-      "results as structured JSON. Use this to discover URLs before fetching " +
-      "them.",
+      "Run a Google search through ScrapeUnblocker and return the results " +
+      "page as structured JSON: organic results with their real URLs, ads, " +
+      "the AI Overview, People also ask, related searches, the knowledge " +
+      "panel, top stories, videos, local and shopping results. Use this to " +
+      "discover URLs before fetching them.",
     inputSchema: {
       keyword: z.string().min(1).describe("The search query."),
       proxy_country: z

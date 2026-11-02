@@ -2,6 +2,15 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.12.1
+
+- `google_search` returns the whole results page the API now parses: every
+  organic result with its real URL, `displayedUrl`, `domain`, `source` and
+  `date`; ads with `advertiser`; the AI Overview; and `peopleAlsoAsk`,
+  `relatedSearches`, `knowledgeGraph`, `topStories`, `videos`,
+  `localResults`, `shoppingResults` and `spellingCorrection`. The tool
+  description says so.
+
 ## 0.12.0
 
 - 6 new site plugins in `list_plugins` / `run_plugin`, in a new Sports
