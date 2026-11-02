@@ -25,7 +25,7 @@ export interface PluginInfo {
 }
 
 /** Category names in display order. */
-export const CATEGORIES: string[] = ["Travel", "Google", "AI", "Search engines", "E-commerce", "Classifieds & Resale", "Groceries", "Real estate", "Vehicles", "Jobs", "Reviews & Companies", "Local & Maps", "Apps", "Video & Music", "SEO & Ads"];
+export const CATEGORIES: string[] = ["Travel", "Google", "AI", "Search engines", "E-commerce", "Classifieds & Resale", "Groceries", "Real estate", "Vehicles", "Jobs", "Reviews & Companies", "Local & Maps", "Apps", "Video & Music", "Sports", "SEO & Ads"];
 
 export const PLUGINS: PluginInfo[] = [
   {
@@ -8052,7 +8052,7 @@ export const PLUGINS: PluginInfo[] = [
         "name": "format",
         "type": "string",
         "required": false,
-        "description": "Output shape: text, segments. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
+        "description": "Output shape: segments, text. 'segments' returns timestamps; 'text' returns only the joined plaintext.",
         "default": "segments"
       },
       {
@@ -8233,6 +8233,239 @@ export const PLUGINS: PluginInfo[] = [
         "type": "string",
         "required": false,
         "description": "Country the request is sent from (ISO-2, e.g. 'DE', 'GB'). Spotify's market follows it, which can change `playable` and search order; play counts are the same everywhere. Leave blank for any."
+      }
+    ]
+  },
+  {
+    "name": "sofascore_events",
+    "title": "SofaScore matches of a sport on a day, or live now",
+    "category": "Sports",
+    "path": "/sports/sofascore-events",
+    "fixed": {},
+    "description": "Lists a sport's matches from sofascore.com for one day in your time zone (or `live=true` for those in progress), biggest competitions first, as JSON: `id`, `url`, `tournament` (id, name, url, category / country, stage), `season`, `round`, `status` (type notstarted, inprogress, finished, postponed, canceled, with its description such as '2nd half'), `startTime` (ISO, UTC) and `startTimestamp`, `homeTeam` / `awayTeam` (id, name, short name, code, country, url), `homeScore` / `awayScore` (current plus per-period and normal-time scores), `winner`, red cards, seeds and first server (tennis), venue and referee when known. Narrow with `country` (a country or category) or `tournament` (id, link or name), and `status`. Pass a match `id` to `/sports/sofascore-match` for its stats and lineups. Motorsport and cycling are races, not matches, and have no day list.",
+    "params": [
+      {
+        "name": "sport",
+        "type": "string",
+        "required": false,
+        "description": "The sport: football, basketball, tennis, ice-hockey, american-football, baseball, handball, volleyball, cricket, rugby, futsal, table-tennis, esports, darts, snooker, mma, aussie-rules, waterpolo, floorball, bandy, badminton, beach-volley, minifootball, padel, motorsport, cycling (soccer, hockey, nba, nfl and the like are accepted).",
+        "default": "football"
+      },
+      {
+        "name": "date",
+        "type": "string",
+        "required": false,
+        "description": "Day as YYYY-MM-DD, or today / yesterday / tomorrow (in `timezone`). Default today."
+      },
+      {
+        "name": "timezone",
+        "type": "string",
+        "required": false,
+        "description": "Time zone the day is read in: an IANA name ('Europe/London', 'America/New_York') or a UTC offset ('+02:00'). Default UTC."
+      },
+      {
+        "name": "live",
+        "type": "boolean",
+        "required": false,
+        "description": "true for the matches in progress right now (date is then ignored).",
+        "default": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "required": false,
+        "description": "Keep only: all, live, upcoming, finished.",
+        "default": "all"
+      },
+      {
+        "name": "country",
+        "type": "string",
+        "required": false,
+        "description": "Only one country or category, by name, slug, ISO code or id: 'england', 'Spain', 'US', and for tennis 'ATP', 'WTA'."
+      },
+      {
+        "name": "tournament",
+        "type": "string",
+        "required": false,
+        "description": "Only one competition: an id, a sofascore.com tournament link or a name such as 'Premier League' or 'NBA'."
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Matches to return (1-500), the biggest competitions first.",
+        "default": 100
+      }
+    ]
+  },
+  {
+    "name": "sofascore_match",
+    "title": "One SofaScore match with stats, lineups and incidents",
+    "category": "Sports",
+    "path": "/sports/sofascore-match",
+    "fixed": {},
+    "description": "Fetches one match from sofascore.com: `event` (teams, score by period, status, start time, tournament, season, round, venue, referee) plus the `include` sections: `statistics` (per period and group, e.g. possession, expected goals, shots, with home / away text and numbers), `lineups` (formation, every player with position, shirt number, rating and match statistics, missing players), `incidents` (goals, cards, substitutions, VAR, periods, oldest first), `h2h` (team and manager records plus the last 10 meetings), `odds` (markets with decimal and fractional odds), `momentum`, `pregame_form`, `votes`, `managers`, `best_players` (player of the match and best rated per side), `shotmap` (every shot with xG, xGOT, body part and coordinates), `commentary` and `highlights`. Sections the site does not have for the match (e.g. statistics before kick-off) are named in `unavailable`.",
+    "params": [
+      {
+        "name": "match",
+        "type": "string",
+        "required": true,
+        "description": "The match: its id (e.g. 16363904, from the search or events endpoints) or a sofascore.com match link. A link without '#id:' names the pairing; the match in progress, else the next, else the latest is used."
+      },
+      {
+        "name": "include",
+        "type": "string",
+        "required": false,
+        "description": "Sections to add, comma separated: statistics, lineups, incidents, h2h, odds, momentum, pregame_form, votes, managers, best_players, shotmap, commentary, highlights (or all / none). Default statistics,lineups,incidents.",
+        "join": ","
+      }
+    ]
+  },
+  {
+    "name": "sofascore_search",
+    "title": "Search SofaScore teams, players, tournaments and matches",
+    "category": "Sports",
+    "path": "/sports/sofascore-search",
+    "fixed": {},
+    "description": "Searches sofascore.com for `query` and returns the matches as JSON, best first. Each result has `rank` (its place in the list), `type` (team, player, tournament, match, manager, referee or venue), `id`, `name`, `slug`, a sofascore.com `url`, `sport`, `country` and `followers`; a player adds `position`, `jerseyNumber` and its `team`, a tournament its `category`, a match the same fields as `/sports/sofascore-events`. `sport` keeps to one sport, `type` to one kind of result. Feed an `id` to `/sports/sofascore-team`, `-player`, `-tournament` or `-match`.",
+    "params": [
+      {
+        "name": "query",
+        "type": "string",
+        "required": true,
+        "description": "What to look for: a team, player, competition, match, manager, referee or venue name, e.g. 'real madrid', 'sinner', 'premier league', 'arsenal chelsea'."
+      },
+      {
+        "name": "sport",
+        "type": "string",
+        "required": false,
+        "description": "The sport: football, basketball, tennis, ice-hockey, american-football, baseball, handball, volleyball, cricket, rugby, futsal, table-tennis, esports, darts, snooker, mma, aussie-rules, waterpolo, floorball, bandy, badminton, beach-volley, minifootball, padel, motorsport, cycling (soccer, hockey, nba, nfl and the like are accepted). Optional; narrows the search or name lookup to one sport."
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "required": false,
+        "description": "Kind of result: all, teams, players, tournaments, matches, managers, referees, venues (all mixes them, best match first).",
+        "default": "all"
+      },
+      {
+        "name": "page",
+        "type": "integer",
+        "required": false,
+        "description": "1-based results page to start from (1-5); the site serves 20 per page.",
+        "default": 1
+      },
+      {
+        "name": "max_results",
+        "type": "integer",
+        "required": false,
+        "description": "Results to collect across pages (1-100).",
+        "default": 20
+      }
+    ]
+  },
+  {
+    "name": "sofascore_team",
+    "title": "A SofaScore team with matches, squad and transfers",
+    "category": "Sports",
+    "path": "/sports/sofascore-team",
+    "fixed": {},
+    "description": "Fetches a team from sofascore.com (tennis players and other individual competitors are teams there too): `team` (name, short name, code, country, category, main tournament, manager, venue with capacity, foundation date, followers, url) plus the `include` sections: `last_matches` (most recent first) and `next_matches` (soonest first) in the events shape, `squad` (players with position, shirt number, birth date, height, foot, country, market value, contract), `tournaments` the team plays and `transfers` (in and out with fee and date). `team` takes an id, a link or a name.",
+    "params": [
+      {
+        "name": "team",
+        "type": "string",
+        "required": true,
+        "description": "The team (or a tennis player, MMA fighter and other individual competitors): its id (e.g. 2829), a sofascore.com team link, or a name such as 'Real Madrid' (best search match)."
+      },
+      {
+        "name": "sport",
+        "type": "string",
+        "required": false,
+        "description": "The sport: football, basketball, tennis, ice-hockey, american-football, baseball, handball, volleyball, cricket, rugby, futsal, table-tennis, esports, darts, snooker, mma, aussie-rules, waterpolo, floorball, bandy, badminton, beach-volley, minifootball, padel, motorsport, cycling (soccer, hockey, nba, nfl and the like are accepted). Optional; narrows the search or name lookup to one sport."
+      },
+      {
+        "name": "include",
+        "type": "string",
+        "required": false,
+        "description": "Sections to add, comma separated: last_matches, next_matches, squad, tournaments, transfers (or all / none). Default last_matches,next_matches.",
+        "join": ","
+      }
+    ]
+  },
+  {
+    "name": "sofascore_player",
+    "title": "A SofaScore player with season stats and matches",
+    "category": "Sports",
+    "path": "/sports/sofascore-player",
+    "fixed": {},
+    "description": "Fetches a player from sofascore.com: `player` (name, team, position and detailed positions, shirt number, birth date, height, preferred foot, country, market value, contract end, followers, url) plus the `include` sections: `season_stats` (every statistic SofaScore keeps for one competition and season, e.g. rating, goals, expected goals, assists, passes, duels, saves), `seasons` (each competition with its seasons, to pick `tournament` and `season`), `last_matches` (most recent first, with the player's rating, minutes and goals or assists in each), `transfers`, `attributes` (attacking, technical, tactical, defending, creativity scores) and `national_team` (caps, goals, debut). `player` takes an id, a link or a name.",
+    "params": [
+      {
+        "name": "player",
+        "type": "string",
+        "required": true,
+        "description": "The player: id (e.g. 12994), a sofascore.com player link, or a name such as 'Lionel Messi' (best search match)."
+      },
+      {
+        "name": "sport",
+        "type": "string",
+        "required": false,
+        "description": "The sport: football, basketball, tennis, ice-hockey, american-football, baseball, handball, volleyball, cricket, rugby, futsal, table-tennis, esports, darts, snooker, mma, aussie-rules, waterpolo, floorball, bandy, badminton, beach-volley, minifootball, padel, motorsport, cycling (soccer, hockey, nba, nfl and the like are accepted). Optional; narrows the search or name lookup to one sport."
+      },
+      {
+        "name": "include",
+        "type": "string",
+        "required": false,
+        "description": "Sections to add, comma separated: seasons, season_stats, last_matches, transfers, attributes, national_team (or all / none). Default season_stats,last_matches.",
+        "join": ","
+      },
+      {
+        "name": "tournament",
+        "type": "string",
+        "required": false,
+        "description": "For season_stats: the competition id (see the seasons section). Default the player's first listed competition."
+      },
+      {
+        "name": "season",
+        "type": "string",
+        "required": false,
+        "description": "For season_stats: a season id or its year as SofaScore writes it ('26/27', '2026'). Default the latest."
+      }
+    ]
+  },
+  {
+    "name": "sofascore_tournament",
+    "title": "A SofaScore competition with standings and fixtures",
+    "category": "Sports",
+    "path": "/sports/sofascore-tournament",
+    "fixed": {},
+    "description": "Fetches a competition and season from sofascore.com: `tournament` (name, category / country, tier, title holder and record holders, divisions above and below, dates, followers, url) and `season`, plus the `include` sections: `standings` (every table: position, team, played, won, drawn, lost, scored, conceded, difference, points, promotion or relegation note), `rounds`, `last_matches` (most recent first) and `next_matches` (soonest first) in the events shape, `top_players` and `top_teams` (the top 10 in each statistic, e.g. rating, goals, assists, expected goals) and `seasons` (every season with its id). `tournament` takes an id, a link or a name.",
+    "params": [
+      {
+        "name": "tournament",
+        "type": "string",
+        "required": true,
+        "description": "The competition: id (e.g. 17), a sofascore.com tournament link (its '#id:' picks the season), or a name such as 'Premier League' or 'NBA' (best search match)."
+      },
+      {
+        "name": "sport",
+        "type": "string",
+        "required": false,
+        "description": "The sport: football, basketball, tennis, ice-hockey, american-football, baseball, handball, volleyball, cricket, rugby, futsal, table-tennis, esports, darts, snooker, mma, aussie-rules, waterpolo, floorball, bandy, badminton, beach-volley, minifootball, padel, motorsport, cycling (soccer, hockey, nba, nfl and the like are accepted). Optional; narrows the search or name lookup to one sport."
+      },
+      {
+        "name": "season",
+        "type": "string",
+        "required": false,
+        "description": "A season id or its year as SofaScore writes it ('26/27', '2026'). Default the current one."
+      },
+      {
+        "name": "include",
+        "type": "string",
+        "required": false,
+        "description": "Sections to add, comma separated: seasons, standings, rounds, last_matches, next_matches, top_players, top_teams (or all / none). Default standings,last_matches,next_matches.",
+        "join": ","
       }
     ]
   },

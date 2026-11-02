@@ -2,6 +2,13 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.12.0
+
+- 6 new site plugins in `list_plugins` / `run_plugin`, in a new Sports
+  category: `sofascore_events`, `sofascore_match`, `sofascore_search`,
+  `sofascore_team`, `sofascore_player` and `sofascore_tournament` (SofaScore
+  live scores, fixtures, results and stats for 26 sports). 185 plugins in all.
+
 ## 0.11.1
 
 - 2 new site plugins in `list_plugins` / `run_plugin`:
