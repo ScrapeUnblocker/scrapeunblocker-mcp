@@ -2,6 +2,15 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.12.2
+
+- `google_search` describes the new fields: organic results and ads with
+  `favicon` and `sitelinks`, organic results with `rating`, `richSnippet`
+  and `thumbnail`, and `relatedSearchLinks`.
+- The `bing_search` plugin's description lists the richer Bing results
+  (site name, favicon, date, sitelinks, rating, the advertiser's real ad
+  URL, related search links, Bing's AI summary, spelling correction).
+
 ## 0.12.1
 
 - `google_search` returns the whole results page the API now parses: every
