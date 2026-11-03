@@ -2,6 +2,16 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.12.3
+
+- The `crunchbase_company`, `meta_ad_library` and `wellfound_jobs` plugin
+  descriptions list the new fields: Crunchbase gaps filled from the
+  company's homepage (SEO description, cover image, head count, LinkedIn id,
+  street address, Instagram / YouTube / GitHub, `fromWebsite`), the full
+  Meta ad record (Ad Library link, sensitive and AI-media flags, active
+  time, impressions, spend, countries, Page picture and categories, media
+  split into images / videos / cards) and Wellfound's `title_match`.
+
 ## 0.12.2
 
 - `google_search` describes the new fields: organic results and ads with
