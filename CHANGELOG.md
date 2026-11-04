@@ -2,6 +2,15 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.12.4
+
+- Zod 4 (4.6.7) replaces Zod 3, which carried a high-severity advisory
+  (GHSA-mrhx-c7xc-m3w5: memory exhaustion while validating oversized
+  constrained collections, fixed only in 4.6.6). Tools, parameters and
+  requests to the API are unchanged; validation error messages read
+  slightly differently, and the advertised input schemas no longer set
+  `additionalProperties: false` (unknown arguments are still ignored).
+
 ## 0.12.3
 
 - The `crunchbase_company`, `meta_ad_library` and `wellfound_jobs` plugin
