@@ -2,6 +2,13 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.12.5
+
+- Every call to the API now names the MCP server in its User-Agent
+  (`scrapeunblocker-node/<sdk> scrapeunblocker-mcp/<version>`), so we can see
+  how the server is really used. Needs `scrapeunblocker` 0.18.4 (new
+  `userAgent` option). Tools and requests are otherwise unchanged.
+
 ## 0.12.4
 
 - Zod 4 (4.6.7) replaces Zod 3, which carried a high-severity advisory

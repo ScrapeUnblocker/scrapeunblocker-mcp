@@ -23,6 +23,7 @@ const SERP = {
 };
 
 let requests = [];
+let agents = [];
 let busyAnswers = 0;
 let api;
 let client;
@@ -31,6 +32,7 @@ function answer(req, res) {
   const url = new URL(req.url, "http://localhost");
   const query = Object.fromEntries(url.searchParams);
   requests.push({ method: req.method, path: url.pathname, query, key: req.headers["x-scrapeunblocker-key"] });
+  agents.push(req.headers["user-agent"]);
   if (url.pathname === "/serpApi") {
     res.writeHead(200, { "content-type": "application/json" });
     res.end(JSON.stringify(SERP));
@@ -80,6 +82,7 @@ after(async () => {
 
 beforeEach(() => {
   requests = [];
+  agents = [];
   busyAnswers = 0;
 });
 
@@ -155,4 +158,12 @@ test("search_and_read reads the top results as Markdown", async () => {
   assert.ok(result.text.includes("## 1. Item\n\nURL: https://shop.example/item\n\n# Item\n\nPrice: $19.99"));
   assert.ok(result.text.includes("## 2. Gone\n\nURL: https://shop.example/gone\n\nCould not read this page: Target page does not exist (HTTP 404)"));
   assert.ok(result.text.endsWith("## Other results\n\n- [Other](https://other.example/): third"));
+});
+
+test("every API call names the MCP server in its User-Agent", async () => {
+  await call("search_and_read", { keyword: "item price", results: 2 });
+  assert.ok(agents.length >= 3);
+  for (const agent of agents) assert.match(agent ?? "", /(^|\s)scrapeunblocker-mcp\/\d/);
+  const serp = requests.findIndex((r) => r.path === "/serpApi");
+  assert.match(agents[serp] ?? "", /^scrapeunblocker-node\/\d+\.\d+\.\d+ /);
 });

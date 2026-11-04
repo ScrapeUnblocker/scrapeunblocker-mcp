@@ -16,7 +16,7 @@ import { APIError, ScrapeUnblockerClient, errorForStatus } from "scrapeunblocker
 import { registerPluginTools } from "./plugin-tools.js";
 import { registerReadingTools, type PageSourceParams } from "./reading-tools.js";
 
-const VERSION = "0.12.4";
+const VERSION = "0.12.5";
 
 /** Default API host, matching the SDK. */
 const DEFAULT_BASE_URL = "https://api.scrapeunblocker.com";
@@ -54,7 +54,7 @@ function client(): ScrapeUnblockerClient {
   // Optional override, e.g. to point a staging key at the staging host. Left
   // unset it defaults to the production API inside the SDK.
   const baseUrl = process.env.SCRAPEUNBLOCKER_BASE_URL || undefined;
-  return new ScrapeUnblockerClient({ apiKey, baseUrl });
+  return new ScrapeUnblockerClient({ apiKey, baseUrl, userAgent: `scrapeunblocker-mcp/${VERSION}` });
 }
 
 /** Normalise any thrown value into a readable string for the tool result. */
