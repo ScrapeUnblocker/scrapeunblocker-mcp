@@ -2,6 +2,13 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.12.6
+
+- `shopee_product` describes the new `originalPriceStatus` field, which says
+  what a null `originalPrice` means (`found`, `no_discount`, `pix`,
+  `not_shown`, `lookup_failed`). Tools and API requests are otherwise
+  unchanged.
+
 ## 0.12.5
 
 - Every call to the API now names the MCP server in its User-Agent
