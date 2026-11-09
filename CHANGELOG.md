@@ -2,6 +2,13 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.12.7
+
+- Plugin tool descriptions list the new response fields for Walmart product and
+  search, Amazon product, Trustpilot reviews, Zillow property detail and Google
+  Shopping. Taobao item tools describe the catalogue key. Tools and API requests
+  are otherwise unchanged.
+
 ## 0.12.6
 
 - `shopee_product` describes the new `originalPriceStatus` field, which says
