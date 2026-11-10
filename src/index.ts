@@ -16,7 +16,7 @@ import { APIError, ScrapeUnblockerClient, errorForStatus } from "scrapeunblocker
 import { registerPluginTools } from "./plugin-tools.js";
 import { registerReadingTools, type PageSourceParams } from "./reading-tools.js";
 
-const VERSION = "0.12.7";
+const VERSION = "0.12.8";
 
 /** Default API host, matching the SDK. */
 const DEFAULT_BASE_URL = "https://api.scrapeunblocker.com";
@@ -48,13 +48,28 @@ function resolveBaseUrl(): string {
   );
 }
 
+/**
+ * Our User-Agent token plus `mcp-host/<app>`: the app this server runs in (VS Code,
+ * Cursor, Claude...), from the clientInfo it sent at initialize, so the API can
+ * count MCP calls per app. Reduced to [a-z0-9-], at most 32 characters.
+ */
+function userAgent(): string {
+  const name = server.server.getClientVersion()?.name ?? "";
+  const app = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .slice(0, 32)
+    .replace(/^-+|-+$/g, "");
+  return app ? `scrapeunblocker-mcp/${VERSION} mcp-host/${app}` : `scrapeunblocker-mcp/${VERSION}`;
+}
+
 function client(): ScrapeUnblockerClient {
   const apiKey = resolveApiKey();
   if (!apiKey) throw new Error(MISSING_KEY_MESSAGE);
   // Optional override, e.g. to point a staging key at the staging host. Left
   // unset it defaults to the production API inside the SDK.
   const baseUrl = process.env.SCRAPEUNBLOCKER_BASE_URL || undefined;
-  return new ScrapeUnblockerClient({ apiKey, baseUrl, userAgent: `scrapeunblocker-mcp/${VERSION}` });
+  return new ScrapeUnblockerClient({ apiKey, baseUrl, userAgent: userAgent() });
 }
 
 /** Normalise any thrown value into a readable string for the tool result. */
@@ -148,7 +163,7 @@ function pageSourceUrl(params: QueryParams): string {
 function requestHeaders(apiKey: string): Record<string, string> {
   return {
     [API_KEY_HEADER]: apiKey,
-    "User-Agent": `scrapeunblocker-mcp/${VERSION}`,
+    "User-Agent": userAgent(),
     Accept: "*/*",
   };
 }

@@ -160,10 +160,13 @@ test("search_and_read reads the top results as Markdown", async () => {
   assert.ok(result.text.endsWith("## Other results\n\n- [Other](https://other.example/): third"));
 });
 
-test("every API call names the MCP server in its User-Agent", async () => {
+test("every API call names the MCP server and the app it runs in in its User-Agent", async () => {
   await call("search_and_read", { keyword: "item price", results: 2 });
   assert.ok(agents.length >= 3);
-  for (const agent of agents) assert.match(agent ?? "", /(^|\s)scrapeunblocker-mcp\/\d/);
+  for (const agent of agents) {
+    assert.match(agent ?? "", /(^|\s)scrapeunblocker-mcp\/\d/);
+    assert.match(agent ?? "", /\smcp-host\/reading-tools-test$/);
+  }
   const serp = requests.findIndex((r) => r.path === "/serpApi");
   assert.match(agents[serp] ?? "", /^scrapeunblocker-node\/\d+\.\d+\.\d+ /);
 });

@@ -2,6 +2,13 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.12.8
+
+- Calls to the API name the app the server runs in (`mcp-host/<app>` in the
+  User-Agent, taken from the MCP client's name, e.g. Visual Studio Code or
+  Cursor), so ScrapeUnblocker can see which apps its MCP server is used from.
+  Tools and API requests are otherwise unchanged.
+
 ## 0.12.7
 
 - Plugin tool descriptions list the new response fields for Walmart product and
