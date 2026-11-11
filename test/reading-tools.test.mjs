@@ -1,4 +1,4 @@
-// fetch_markdown and search_and_read end to end: the built server
+// fetch_markdown, search_and_read and google_search end to end: the built server
 // (dist/index.js) runs over stdio, as an MCP client starts it, against a local
 // stand-in for the ScrapeUnblocker API that records every request.
 
@@ -158,6 +158,26 @@ test("search_and_read reads the top results as Markdown", async () => {
   assert.ok(result.text.includes("## 1. Item\n\nURL: https://shop.example/item\n\n# Item\n\nPrice: $19.99"));
   assert.ok(result.text.includes("## 2. Gone\n\nURL: https://shop.example/gone\n\nCould not read this page: Target page does not exist (HTTP 404)"));
   assert.ok(result.text.endsWith("## Other results\n\n- [Other](https://other.example/): third"));
+});
+
+function serpQueries() {
+  return requests.filter((r) => r.path === "/serpApi").map((r) => r.query);
+}
+
+test("google_search asks for one page and leaves full_urls out by default", async () => {
+  const result = await call("google_search", { keyword: "item price" });
+  assert.deepEqual(serpQueries(), [{ keyword: "item price", pages_to_check: "1" }]);
+  assert.equal(result.isError, false);
+  assert.deepEqual(JSON.parse(result.text), SERP);
+});
+
+test("google_search passes full_urls only when it is true", async () => {
+  await call("google_search", { keyword: "item price", proxy_country: "DE", pages_to_check: 2, full_urls: true });
+  await call("google_search", { keyword: "item price", full_urls: false });
+  assert.deepEqual(serpQueries(), [
+    { keyword: "item price", proxy_country: "DE", pages_to_check: "2", full_urls: "true" },
+    { keyword: "item price", pages_to_check: "1" },
+  ]);
 });
 
 test("every API call names the MCP server and the app it runs in in its User-Agent", async () => {

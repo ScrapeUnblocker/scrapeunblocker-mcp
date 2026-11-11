@@ -2,6 +2,17 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.12.9
+
+- `google_search` takes an optional `full_urls` (boolean). Google gives out a
+  results page's real links a few at a time, the last ones up to about 40
+  seconds after the search; by default the call returns sooner, and a result
+  whose link has not come yet has the site's home page as its `url` (or a
+  Google redirect link). With `full_urls: true` the API waits for (nearly)
+  every result's real URL, so the call takes up to about 40 seconds longer.
+  Billed the same. It is sent to `/serpApi` only when true, so calls without
+  it are unchanged.
+
 ## 0.12.8
 
 - Calls to the API name the app the server runs in (`mcp-host/<app>` in the

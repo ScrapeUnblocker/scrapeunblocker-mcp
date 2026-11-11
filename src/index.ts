@@ -16,7 +16,7 @@ import { APIError, ScrapeUnblockerClient, errorForStatus } from "scrapeunblocker
 import { registerPluginTools } from "./plugin-tools.js";
 import { registerReadingTools, type PageSourceParams } from "./reading-tools.js";
 
-const VERSION = "0.12.8";
+const VERSION = "0.12.9";
 
 /** Default API host, matching the SDK. */
 const DEFAULT_BASE_URL = "https://api.scrapeunblocker.com";
@@ -684,7 +684,8 @@ server.registerTool(
       "favicons, sitelinks and star ratings, ads, the AI Overview, People " +
       "also ask, related searches with their links, the knowledge panel, " +
       "top stories, videos, local and shopping results. Use this to discover " +
-      "URLs before fetching them.",
+      "URLs before fetching them. Set `full_urls` when you need the exact " +
+      "page URL of every result.",
     inputSchema: {
       keyword: z.string().min(1).describe("The search query."),
       proxy_country: z
@@ -699,13 +700,29 @@ server.registerTool(
         .max(10)
         .optional()
         .describe("How many result pages to collect (default 1)."),
+      full_urls: z
+        .boolean()
+        .optional()
+        .describe(
+          "Wait until Google gives out every result's real URL. Set it when " +
+            "you need the exact page URL of all results (e.g. to cite or open " +
+            "them); leave it off for quick answers. Google releases a results " +
+            "page's links a few at a time, the last ones up to about 40 seconds " +
+            "after the search: without it a result whose link has not come yet " +
+            "has the site's home page as its `url` (or a Google redirect link), " +
+            "with it the call takes up to about 40 seconds longer. Billed the same.",
+        ),
     },
   },
   async (args) => {
     try {
-      const results = await client().serp(args.keyword, {
-        proxyCountry: args.proxy_country,
-        pagesToCheck: args.pages_to_check,
+      // Through plugin() because serp() only sends the options it knows, and
+      // full_urls is not among them. The request is otherwise what serp() sends.
+      const results = await client().plugin("/serpApi", {
+        keyword: args.keyword,
+        proxy_country: args.proxy_country,
+        pages_to_check: args.pages_to_check ?? 1,
+        full_urls: args.full_urls ? true : undefined,
       });
       return {
         content: [{ type: "text", text: JSON.stringify(results, null, 2) }],
