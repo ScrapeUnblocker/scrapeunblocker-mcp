@@ -2,6 +2,14 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.12.10
+
+- Without an API key, the tools now say where to get one for both readers of
+  the message: a person signs up free at app.scrapeunblocker.com (500
+  requests, no card), and an AI agent can, with its user's OK, buy a key
+  itself with no signup at agents.scrapeunblocker.com and use it over the REST
+  API right away, until the server is restarted with the key.
+
 ## 0.12.9
 
 - `google_search` takes an optional `full_urls` (boolean). Google gives out a

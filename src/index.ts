@@ -36,10 +36,19 @@ function resolveApiKey(): string | undefined {
   );
 }
 
+/**
+ * Read by the person who set the server up and by the AI agent calling the
+ * tool, so it gives each a way to a key: the person signs up, the agent may buy
+ * one on the agent storefront when its user agrees, and use it over REST at
+ * once, because a restarted server is what picks up the env var.
+ */
 const MISSING_KEY_MESSAGE =
   "No ScrapeUnblocker API key found. Set the SCRAPEUNBLOCKER_KEY environment " +
-  "variable to your own key (get one at https://app.scrapeunblocker.com) and " +
-  "restart the MCP server.";
+  "variable to your own key and restart the MCP server. A person gets a key at " +
+  "https://app.scrapeunblocker.com (sign up free, 500 requests, no card). An AI " +
+  "agent can, with its user's OK, buy a key itself with no signup at " +
+  "https://agents.scrapeunblocker.com and call the REST API with it right away " +
+  "(https://www.scrapeunblocker.com/llms.txt) until the server is restarted with the key.";
 
 function resolveBaseUrl(): string {
   return (process.env.SCRAPEUNBLOCKER_BASE_URL || DEFAULT_BASE_URL).replace(
