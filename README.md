@@ -14,6 +14,7 @@ You bring your **own** API key. Nothing is shared or proxied through us.
 |------|--------------|
 | `fetch_html` | Fetch the fully rendered HTML of a URL. |
 | `browse_page` | Run interactive browser `steps` on a page (click, type, select, scroll, wait), then return the resulting HTML. Not read-only: it acts on the website. |
+| `capture_xhr` | Load a page in a real browser and return the JSON its own API calls received (every XHR/fetch whose URL contains a fragment such as `/api/search`), with optional `steps` to make the page fire the call. For sites that render from a JSON API refusing direct requests. Not read-only when steps act on the site. |
 | `list_elements` | List a page's notable elements with a ready-to-use selector for each (selector discovery). |
 | `fetch_parsed` | Fetch a page and return AI-parsed structured JSON. |
 | `google_search` | Run a Google search and return the results page as JSON: organic results with real URLs, favicons, sitelinks and ratings, ads, AI Overview, People also ask, related searches with links, knowledge panel, news, videos, local and shopping results. Set `full_urls: true` to get every result's exact page URL: Google gives out the last links up to about 40 seconds after the search, so the call takes that much longer (billed the same). Without it, a result whose link has not come yet has the site's home page as its `url`. |

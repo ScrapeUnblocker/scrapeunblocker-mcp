@@ -16,7 +16,7 @@ import { APIError, ScrapeUnblockerClient, errorForStatus } from "scrapeunblocker
 import { registerPluginTools } from "./plugin-tools.js";
 import { registerReadingTools, type PageSourceParams } from "./reading-tools.js";
 
-const VERSION = "0.12.9";
+const VERSION = "0.13.0";
 
 /** Default API host, matching the SDK. */
 const DEFAULT_BASE_URL = "https://api.scrapeunblocker.com";
@@ -178,10 +178,11 @@ function requestHeaders(apiKey: string): Record<string, string> {
 }
 
 /**
- * A thin, raw POST to `/getPageSource` for the two capabilities the typed SDK
- * methods do not model: interactive browser `steps` (which return HTML but can
- * also fail with an HTTP 422 body we must read) and `list_elements` (which
- * returns JSON). We mirror the SDK's query building and auth header, but return
+ * A thin, raw POST to `/getPageSource` for the capabilities whose answers the
+ * tools read themselves: interactive browser `steps` (which return HTML but can
+ * also fail with an HTTP 422 body we must read), `list_elements` (which
+ * returns JSON) and `capture_xhr` (JSON, and the same 422 when a step fails).
+ * We mirror the SDK's query building and auth header, but return
  * the raw response so the caller can decide how to interpret it and can read
  * the 422 body instead of it being swallowed by an error class.
  */
@@ -549,6 +550,180 @@ server.registerTool(
           content: [{ type: "text", text: res.text }],
           isError: true,
         };
+      }
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `ScrapeUnblocker returned HTTP ${res.status}: ${res.text.slice(0, 500)}`,
+          },
+        ],
+        isError: true,
+      };
+    } catch (err) {
+      return errorResult(args.url, err);
+    }
+  },
+);
+
+// ---------------------------------------------------------------------------
+// Tool: capture_xhr
+// ---------------------------------------------------------------------------
+// The page's own XHR/fetch responses (getPageSource `capture_xhr`). Not
+// read-only for the same reason as browse_page: its optional steps act on the
+// site.
+
+/** Default cap on the text this tool returns, so one call cannot flood the context. */
+const CAPTURE_MAX_CHARS = 60_000;
+
+interface CapturedCall {
+  url?: string;
+  method?: string;
+  status?: number;
+  content_type?: string | null;
+  body?: string | null;
+  body_omitted?: string;
+}
+
+/** The captured calls as text: one header line each, then its body. */
+function capturedCallsText(calls: CapturedCall[], maxChars: number): string {
+  const parts = calls.map((c, i) => {
+    const head =
+      `[${i}] ${c.status ?? 0} ${c.method ?? "GET"} ${c.url ?? ""}` +
+      (c.content_type ? ` (${c.content_type})` : "");
+    const body =
+      typeof c.body === "string" ? c.body : `(no body: ${c.body_omitted ?? "unavailable"})`;
+    return `${head}\n${body}`;
+  });
+  const text = parts.join("\n\n");
+  if (text.length <= maxChars) return text;
+  return `${text.slice(0, maxChars)}\n\n[Cut at ${maxChars} of ${text.length} characters. Raise max_chars or narrow capture_xhr.]`;
+}
+
+server.registerTool(
+  "capture_xhr",
+  {
+    title: "Capture a page's own API calls (XHR/fetch)",
+    annotations: {
+      title: "Capture a page's own API calls (XHR/fetch)",
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true,
+    },
+    description:
+      "Load a web page in a real browser through ScrapeUnblocker and return the JSON " +
+      "its own API calls received: every XHR/fetch response whose URL contains " +
+      "`capture_xhr` (a fragment such as '/api/search'), in order, with status and " +
+      "body. Use it when a site renders from a JSON API that refuses direct requests " +
+      "(the page signs each call): the page makes the call, so it succeeds, and the " +
+      "JSON is cleaner than the HTML. Add `steps` to make the page fire the call " +
+      "(a search, 'load more'); find selectors with `list_elements` first. Steps act " +
+      "on the website and run once; never use them to buy, post or change anything " +
+      "unless the user asked for exactly that. Up to 20 responses. The page HTML is " +
+      "not returned (use fetch_html or browse_page for it). Billed as one request; " +
+      "when the site refuses every matching call (403/429) the call fails and is free.",
+    inputSchema: {
+      url: z.string().url().describe("The absolute URL to open (http/https)."),
+      capture_xhr: z
+        .string()
+        .min(1)
+        .max(500)
+        .describe(
+          "A fragment of the API URL the page calls, e.g. '/api/search'. Every XHR/fetch " +
+            "response whose URL contains it is returned (plain substring, case-sensitive).",
+        ),
+      steps: z
+        .array(stepSchema)
+        .optional()
+        .describe(
+          "Optional browser actions that make the page fire the call, run after the " +
+            "page loads. Use `list_elements` first to find selectors. Runs once.",
+        ),
+      proxy_country: z
+        .string()
+        .length(2)
+        .optional()
+        .describe(
+          "Optional ISO 3166-1 alpha-2 country code to route through, e.g. 'US', 'GB', 'DE'.",
+        ),
+      max_chars: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe(`Cap on the returned text (default ${CAPTURE_MAX_CHARS}).`),
+    },
+  },
+  async (args) => {
+    try {
+      const res = await getPageSourceRaw({
+        url: args.url,
+        capture_xhr: args.capture_xhr,
+        proxy_country: args.proxy_country,
+        steps: args.steps && args.steps.length ? JSON.stringify(args.steps) : undefined,
+      });
+      const maxChars = args.max_chars ?? CAPTURE_MAX_CHARS;
+
+      const gone = targetGoneStatus(res.status, res.originStatus);
+      if (gone !== null) {
+        return { content: [{ type: "text", text: targetGoneText(args.url, gone, res.text) }] };
+      }
+
+      let payload: {
+        xhr?: CapturedCall[];
+        xhr_truncated?: boolean;
+        proxy?: string | null;
+        error?: string;
+        step_index?: number;
+        action?: string;
+        reason?: string;
+        selector?: string;
+      } = {};
+      try {
+        payload = JSON.parse(res.text);
+      } catch {
+        // Not JSON: reported below with the raw body.
+      }
+
+      if (res.ok && Array.isArray(payload.xhr)) {
+        const calls = payload.xhr;
+        const header =
+          `URL: ${args.url}\n` +
+          `Captured ${calls.length} call(s) matching ${JSON.stringify(args.capture_xhr)}` +
+          (payload.xhr_truncated ? " (more matched; only the first 20 are returned)" : "") +
+          (payload.proxy ? `, served from ${payload.proxy.toUpperCase()}` : "") +
+          ".";
+        if (!calls.length) {
+          return {
+            content: [
+              {
+                type: "text",
+                text:
+                  `${header}\n\nNo XHR/fetch call matched. Check the fragment against the ` +
+                  "page's network requests, or add steps that make the page fire the call.",
+              },
+            ],
+          };
+        }
+        return {
+          content: [{ type: "text", text: `${header}\n\n${capturedCallsText(calls, maxChars)}` }],
+        };
+      }
+
+      if (res.status === 422 && payload.error === "step_failed") {
+        const calls = Array.isArray(payload.xhr) ? payload.xhr : [];
+        const summary =
+          "Browser step failed" +
+          (typeof payload.step_index === "number" ? ` at index ${payload.step_index}` : "") +
+          (payload.action ? ` (${payload.action})` : "") +
+          (payload.selector ? ` on selector ${JSON.stringify(payload.selector)}` : "") +
+          `: ${payload.reason ?? "unknown reason"}.\n\n` +
+          "Fix the step (use list_elements to inspect the page) and retry. " +
+          `Calls the page made before the step failed: ${calls.length}.` +
+          (calls.length ? `\n\n${capturedCallsText(calls, maxChars)}` : "");
+        return { content: [{ type: "text", text: summary }], isError: true };
       }
 
       return {

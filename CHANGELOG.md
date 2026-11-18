@@ -2,6 +2,16 @@
 
 All notable changes to `scrapeunblocker-mcp` are documented here.
 
+## 0.13.0
+
+- New `capture_xhr` tool, for the API's `capture_xhr` parameter: the page is
+  loaded in a real browser and every XHR/fetch response whose URL contains the
+  given fragment comes back in order, with status and body (up to 20; the page
+  HTML is not returned). Optional `steps` make the page fire the call (a
+  search, "load more"). For sites that render from a JSON API that refuses
+  direct requests. A failed step is reported with the calls made before it.
+- The server reports its own version again (it still said 0.12.9).
+
 ## 0.12.10
 
 - Without an API key, the tools now say where to get one for both readers of
