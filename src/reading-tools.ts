@@ -139,8 +139,8 @@ export function registerReadingTools(server: McpServer, options: ReadingToolsOpt
         "(https://docs.scrapeunblocker.com) and return it as clean Markdown: the main " +
         "content with absolute links, without scripts, styles, navigation or footer. Use it " +
         "to read, quote or summarise a page; it is usually 2-25% the size of the HTML. Works " +
-        "on JavaScript-rendered pages and on pages that refuse ordinary fetches (403/429, " +
-        "captcha). Use fetch_html instead when you need the markup, selectors or browser " +
+        "on JavaScript-rendered pages and on pages that return 403/429 to a plain HTTP " +
+        "fetch. Use fetch_html instead when you need the markup, selectors or browser " +
         "steps. Billed as one request.",
       inputSchema: {
         url: z.string().url().describe("The absolute URL to read (http/https)."),

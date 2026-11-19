@@ -16,7 +16,7 @@ import { APIError, ScrapeUnblockerClient, errorForStatus } from "scrapeunblocker
 import { registerPluginTools } from "./plugin-tools.js";
 import { registerReadingTools, type PageSourceParams } from "./reading-tools.js";
 
-const VERSION = "0.13.0";
+const VERSION = "0.13.1";
 
 /** Default API host, matching the SDK. */
 const DEFAULT_BASE_URL = "https://api.scrapeunblocker.com";
@@ -371,10 +371,10 @@ server.registerTool(
     title: "Fetch page HTML",
     annotations: { title: "Fetch page HTML", readOnlyHint: true, openWorldHint: true, destructiveHint: false },
     description:
-      "Fetch the fully rendered HTML of any web page through ScrapeUnblocker, " +
-      "bypassing anti-bot protection (Cloudflare, DataDome, PerimeterX, Akamai, " +
-      "Shape). Use this when a normal fetch is blocked (403/429, captcha, " +
-      "'access denied') or when the page needs a real browser to render. " +
+      "Fetch the fully rendered HTML of any public web page through ScrapeUnblocker. " +
+      "The page loads in a real browser, so JavaScript-rendered pages come back " +
+      "complete. Use it when you need the page markup, or when a plain HTTP fetch " +
+      "returns 403/429 or an empty page. " +
       "Returns the raw HTML as text. To read or summarise a page, fetch_markdown " +
       "is much smaller. To click, type or scroll before capturing, use browse_page.",
     inputSchema: {

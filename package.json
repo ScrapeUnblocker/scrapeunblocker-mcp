@@ -1,8 +1,8 @@
 {
   "name": "scrapeunblocker-mcp",
-  "version": "0.13.0",
+  "version": "0.13.1",
   "mcpName": "com.scrapeunblocker/scrapeunblocker-mcp",
-  "description": "Model Context Protocol (MCP) server for ScrapeUnblocker - lets Claude fetch any web page's HTML (or AI-parsed JSON) and run 100+ site plugins that return structured JSON, through the ScrapeUnblocker anti-bot API, using your own API key.",
+  "description": "Model Context Protocol (MCP) server for ScrapeUnblocker - lets Claude fetch any web page's HTML (or AI-parsed JSON) and run 100+ site plugins that return structured JSON, through the ScrapeUnblocker API, using your own API key.",
   "keywords": [
     "mcp",
     "model-context-protocol",
@@ -10,9 +10,9 @@
     "scraping",
     "web-scraping",
     "scrapeunblocker",
-    "anti-bot",
-    "cloudflare",
-    "datadome"
+    "web-search",
+    "content-extraction",
+    "markdown"
   ],
   "license": "MIT",
   "author": "ScrapeUnblocker",

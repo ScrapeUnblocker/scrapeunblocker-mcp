@@ -1,10 +1,10 @@
 # ScrapeUnblocker MCP server
 
-A [Model Context Protocol](https://modelcontextprotocol.io) server that lets
-Claude (and any other MCP client) fetch **any web page's HTML** - or run one of
-100+ ready-made **site plugins** that return structured JSON - through the
-[ScrapeUnblocker](https://scrapeunblocker.com?utm_source=mcp&utm_medium=integration&utm_campaign=mcp-server) scraping API, bypassing anti-bot
-protection (Cloudflare, DataDome, PerimeterX, Akamai, Shape).
+A [Model Context Protocol](https://modelcontextprotocol.io) server that gives
+Claude (and any other MCP client) **web search and content extraction**: Google
+results, **any public web page** as Markdown, HTML or AI-parsed JSON, and 180+
+ready-made **site plugins** that return structured JSON - through the
+[ScrapeUnblocker](https://scrapeunblocker.com?utm_source=mcp&utm_medium=integration&utm_campaign=mcp-server) API.
 
 You bring your **own** API key. Nothing is shared or proxied through us.
 
