@@ -184,8 +184,7 @@ export function registerPluginTools(server: McpServer, options: PluginToolsOptio
         "return clean structured JSON (Amazon, Walmart, Target, eBay, Zillow, Redfin, " +
         "Booking.com, Airbnb, Indeed, Glassdoor, Google Trends / Shopping / Maps, YouTube, " +
         "Spotify, App Store, Google Play, Trustpilot, Yelp, Ahrefs, Semrush and 100+ more). " +
-        "Check here before scraping a known site with fetch_html - a plugin returns the data " +
-        "already parsed. Without arguments it lists every plugin with its parameters " +
+        "A plugin returns a site's data already parsed. Without arguments it lists every plugin with its parameters " +
         "(* = required); `category` or `search` narrow the list; `name` returns one " +
         "plugin's full parameter docs. Free - it calls nothing.",
       inputSchema: {
@@ -224,12 +223,12 @@ export function registerPluginTools(server: McpServer, options: PluginToolsOptio
       description:
         "Run one ScrapeUnblocker site plugin and return its JSON - e.g. a Target or Walmart " +
         "search, a Zillow listing search, Google Trends for some keywords, an app's App Store " +
-        "reviews. Find the plugin and its parameters with list_plugins first. `params` uses " +
-        "the parameter names list_plugins shows (snake_case); a list value is fine where a " +
-        "parameter takes several. Each run is billed like an API request; listing plugins " +
-        "bill one unit per result page they fetch, so keep max_results modest.",
+        "reviews. `params` uses the plugin's own parameter names (snake_case); a list value " +
+        "is fine where a parameter takes several. Each run is billed like an API request; " +
+        "listing plugins bill one unit per result page they fetch, so max_results sets the " +
+        "cost.",
       inputSchema: {
-        name: z.enum(NAMES).describe("The plugin to run, as list_plugins names it."),
+        name: z.enum(NAMES).describe("The plugin to run, by its plugin name."),
         params: z
           .record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.array(z.union([z.string(), z.number()]))]))
           .optional()

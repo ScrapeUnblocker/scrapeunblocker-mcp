@@ -16,7 +16,7 @@ import { APIError, ScrapeUnblockerClient, errorForStatus } from "scrapeunblocker
 import { registerPluginTools } from "./plugin-tools.js";
 import { registerReadingTools, type PageSourceParams } from "./reading-tools.js";
 
-const VERSION = "0.13.1";
+const VERSION = "0.13.2";
 
 /** Default API host, matching the SDK. */
 const DEFAULT_BASE_URL = "https://api.scrapeunblocker.com";
@@ -375,8 +375,7 @@ server.registerTool(
       "The page loads in a real browser, so JavaScript-rendered pages come back " +
       "complete. Use it when you need the page markup, or when a plain HTTP fetch " +
       "returns 403/429 or an empty page. " +
-      "Returns the raw HTML as text. To read or summarise a page, fetch_markdown " +
-      "is much smaller. To click, type or scroll before capturing, use browse_page.",
+      "Returns the raw HTML as text.",
     inputSchema: {
       url: z.string().url().describe("The absolute URL to fetch (http/https)."),
       proxy_country: z
@@ -447,13 +446,10 @@ server.registerTool(
       "Load a web page in a real browser through ScrapeUnblocker, run an ordered " +
       "list of browser actions on it (accept a cookie banner, click a tab, type " +
       "into a search box, choose an option, press a key, scroll to trigger lazy " +
-      "loading, wait), then return the resulting HTML. Workflow: first call the " +
-      "`list_elements` tool to discover the real selectors on the page, then " +
-      "build `steps` against them. Steps act on the website and are NOT " +
-      "idempotent - they run once per call; never use them to buy, post, delete " +
-      "or change anything unless the user asked for exactly that. If a step " +
-      "fails, this tool returns which step failed, why, and the page HTML at " +
-      "that moment so you can fix the selector and retry. Billed as one request.",
+      "loading, wait), then return the resulting HTML. Steps act on the website and " +
+      "are NOT idempotent - they run once per call. If a step fails, the result says " +
+      "which step failed, why, and includes the page HTML at that moment. Billed as " +
+      "one request.",
     inputSchema: {
       url: z.string().url().describe("The absolute URL to open (http/https)."),
       steps: z
@@ -618,11 +614,9 @@ server.registerTool(
       "`capture_xhr` (a fragment such as '/api/search'), in order, with status and " +
       "body. Use it when a site renders from a JSON API that refuses direct requests " +
       "(the page signs each call): the page makes the call, so it succeeds, and the " +
-      "JSON is cleaner than the HTML. Add `steps` to make the page fire the call " +
-      "(a search, 'load more'); find selectors with `list_elements` first. Steps act " +
-      "on the website and run once; never use them to buy, post or change anything " +
-      "unless the user asked for exactly that. Up to 20 responses. The page HTML is " +
-      "not returned (use fetch_html or browse_page for it). Billed as one request; " +
+      "JSON is cleaner than the HTML. Optional `steps` make the page fire the call " +
+      "(a search, 'load more'); steps act on the website and run once. Up to 20 " +
+      "responses; the page HTML is not returned. Billed as one request; " +
       "when the site refuses every matching call (403/429) the call fails and is free.",
     inputSchema: {
       url: z.string().url().describe("The absolute URL to open (http/https)."),
@@ -754,10 +748,8 @@ server.registerTool(
       "elements (links, inputs, buttons, selects, etc.) with a ready-to-use " +
       "`selector` for each, plus tag, text and useful attributes (name, id, " +
       "type, placeholder, aria_label, href, ...). Read-only and does not " +
-      "interact with the page. This is the discovery half of interactive " +
-      "scraping: call `list_elements` to find the selectors you need, then pass " +
-      "matching `steps` to `browse_page` to click/type/select and capture the " +
-      "resulting HTML.",
+      "interact with the page. Use it to find the selectors a page's buttons, " +
+      "inputs and links answer to.",
     inputSchema: {
       url: z
         .string()
